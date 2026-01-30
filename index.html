@@ -1708,14 +1708,12 @@
             const SCROLL_COOLDOWN = 800; // Minimum time between scroll navigations (ms)
             const hasRecordedFirstView = useRef(false);
 
-            // Record view for the first video on mount (but don't show modal on initial load)
+            // First video is free - don't count it as a view
+            // Views only count when swiping to video 2, 3, etc.
             useEffect(() => {
                 if (videos.length > 0 && !hasRecordedFirstView.current) {
                     hasRecordedFirstView.current = true;
-                    // Only record if user can watch, otherwise just let them view video 1
-                    if (accessControl.canWatch) {
-                        accessControl.recordView();
-                    }
+                    // Don't record view for first video - it's free
                 }
             }, [videos.length, accessControl]);
 
