@@ -1100,6 +1100,25 @@
                 setModalTouchStart(null);
             };
 
+            // Wheel/scroll handler for modal - scroll down to go back
+            const lastWheelTime = React.useRef(0);
+            const handleModalWheel = (e) => {
+                e.preventDefault();
+                const now = Date.now();
+                // Cooldown to prevent multiple triggers
+                if (now - lastWheelTime.current < 500) return;
+
+                // Scroll down (positive deltaY) = go back to videos
+                if (e.deltaY > 30) {
+                    lastWheelTime.current = now;
+                    if (onSwipeBack) {
+                        onSwipeBack();
+                    } else {
+                        onClose();
+                    }
+                }
+            };
+
             if (!isOpen) return null;
 
             const plans = [
@@ -1178,7 +1197,7 @@
                     paddingBottom: '60px',
                     overflowY: 'auto',
                     WebkitOverflowScrolling: 'touch'
-                }} className="fade-in" onClick={onClose} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd}>
+                }} className="fade-in" onClick={onClose} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd} onWheel={handleModalWheel}>
                     <div
                         style={{
                             maxWidth: '1300px',
@@ -1191,7 +1210,7 @@
                         onTouchStart={handleModalTouchStart}
                         onTouchEnd={handleModalTouchEnd}
                     >
-                        {/* Swipe down indicator */}
+                        {/* Swipe/scroll indicator */}
                         <div style={{
                             display: 'flex',
                             flexDirection: 'column',
@@ -1207,7 +1226,7 @@
                                 borderRadius: '2px',
                                 marginBottom: '8px'
                             }} />
-                            <span>Swipe down to go back</span>
+                            <span>Scroll down to go back</span>
                         </div>
 
                         {/* Header */}
@@ -1903,7 +1922,14 @@
                         setIsMuted(false);
                     }
                 }
-            }, [goToNext, goToPrev, isMuted]);
+                // R key to reset daily views and go back to video 1
+                if (e.key === 'r' || e.key === 'R') {
+                    e.preventDefault();
+                    accessControl.resetDailyViews();
+                    setCurrentIndex(0);
+                    setMaxWatchedIndex(0);
+                }
+            }, [goToNext, goToPrev, isMuted, accessControl]);
 
             useEffect(() => {
                 const container = containerRef.current;
