@@ -604,7 +604,7 @@
         };
 
         // ==================== VIDEO PLAYER COMPONENT ====================
-        const VideoPlayer = ({ video, isActive, onVideoEnd, isMuted, onToggleMute, onTimeUpdate }) => {
+        const VideoPlayer = ({ video, isActive, onVideoEnd, isMuted, onToggleMute, onTimeUpdate, isLastVideo }) => {
             const videoRef = useRef(null);
             const progressBarRef = useRef(null);
             const [isPlaying, setIsPlaying] = useState(false);
@@ -823,7 +823,7 @@
                                 objectFit: 'cover',
                                 opacity: hasError ? 0.3 : 1
                             }}
-                            loop
+                            loop={!isLastVideo}
                             muted={isMuted}
                             playsInline
                             preload="auto"
@@ -1170,7 +1170,9 @@
                     justifyContent: 'center',
                     zIndex: 1000,
                     padding: '20px',
-                    overflowY: 'auto'
+                    paddingBottom: '60px',
+                    overflowY: 'auto',
+                    WebkitOverflowScrolling: 'touch'
                 }} className="fade-in" onClick={onClose} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd}>
                     <div
                         style={{
@@ -1778,8 +1780,13 @@
                         return;
                     }
 
-                    // Going to a new video - each video costs 1 view
+                    // Going to a new video - last video costs 2 views, others cost 1
+                    const isLastVideo = nextIndex === videos.length - 1;
                     if (accessControl.recordView()) {
+                        // Record extra view for last video to reach 0/6
+                        if (isLastVideo) {
+                            accessControl.recordView();
+                        }
                         setCurrentIndex(nextIndex);
                         setMaxWatchedIndex(nextIndex);
                     }
@@ -1997,6 +2004,7 @@
                                         isMuted={isMuted}
                                         onToggleMute={() => setIsMuted(!isMuted)}
                                         onTimeUpdate={index === currentIndex ? (remaining) => setTimeRemaining(remaining) : undefined}
+                                        isLastVideo={index === videos.length - 1}
                                     />
                                 </div>
                             ))}
