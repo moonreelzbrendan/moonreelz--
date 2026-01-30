@@ -1082,6 +1082,18 @@
         const UpgradeModal = ({ isOpen, onClose, onSelectPlan, currentPlan }) => {
             const [selectedPlan, setSelectedPlan] = useState(null);
             const [isYearly, setIsYearly] = useState(false);
+            const [modalTouchStart, setModalTouchStart] = useState(null);
+
+            // Swipe down to close modal
+            const handleModalTouchStart = (e) => {
+                setModalTouchStart(e.touches[0].clientY);
+            };
+            const handleModalTouchEnd = (e) => {
+                if (modalTouchStart && e.changedTouches[0].clientY - modalTouchStart > 100) {
+                    onClose();
+                }
+                setModalTouchStart(null);
+            };
 
             if (!isOpen) return null;
 
@@ -1159,12 +1171,13 @@
                     zIndex: 1000,
                     padding: '20px',
                     overflowY: 'auto'
-                }} className="fade-in" onClick={onClose}>
+                }} className="fade-in" onClick={onClose} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd}>
                     <div
                         style={{
                             maxWidth: '1300px',
                             width: '100%',
-                            textAlign: 'center'
+                            textAlign: 'center',
+                            paddingBottom: '40px'
                         }}
                         className="slide-up"
                         onClick={(e) => e.stopPropagation()}
@@ -1776,9 +1789,13 @@
             const goToPrev = useCallback(() => {
                 // Always allow going back to previously watched videos
                 if (currentIndex > 0) {
+                    // Close modal if open so user can navigate
+                    if (accessControl.showUpgradeModal) {
+                        accessControl.closeUpgradeModal();
+                    }
                     setCurrentIndex(prev => prev - 1);
                 }
-            }, [currentIndex]);
+            }, [currentIndex, accessControl]);
 
             // Handle video end - show plans on last video, otherwise go to next
             const handleVideoEnd = useCallback(() => {
