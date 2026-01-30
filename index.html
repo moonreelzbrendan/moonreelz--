@@ -2470,8 +2470,10 @@
                                 </button>
                                 <button
                                     onClick={() => {
-                                        accessControl.resetDailyViews();
-                                        alert('Daily view count reset to 0!');
+                                        // Direct localStorage reset
+                                        localStorage.setItem('moonreelz_daily_views', '0');
+                                        localStorage.setItem('moonreelz_last_view_date', JSON.stringify(new Date().toDateString()));
+                                        alert('Reset complete! Please refresh the page to see 6/6.');
                                     }}
                                     style={{
                                         padding: '10px 20px',
