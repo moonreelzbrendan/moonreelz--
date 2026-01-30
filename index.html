@@ -1731,16 +1731,13 @@
                     }
 
                     // Going to a new video - try to record the view
-                    // Last video consumes all remaining views
+                    // Last video costs 2 views to use up remaining views
                     const isLastVideo = nextIndex === videos.length - 1;
 
                     if (accessControl.recordView()) {
-                        // If last video, consume all remaining views
+                        // If last video, record one extra view (2 total)
                         if (isLastVideo) {
-                            // Record views until we hit 0
-                            while (accessControl.viewsRemaining > 0) {
-                                accessControl.recordView();
-                            }
+                            accessControl.recordView();
                         }
                         setCurrentIndex(nextIndex);
                         setMaxWatchedIndex(nextIndex);
