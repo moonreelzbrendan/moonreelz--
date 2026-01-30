@@ -102,57 +102,57 @@
         const SAMPLE_VIDEOS = [
             {
                 id: '1',
-                title: 'Anduril: The Arcade of Defence',
-                description: 'How Palmer Luckey built a defence tech empire after Oculus.',
-                url: 'videos/1 Anduril Arcade - small.mp4',
+                title: 'REITs Explained',
+                description: 'How Real Estate Investment Trusts work and why they matter.',
+                url: 'videos/1 REITs.mp4',
                 thumbnail: '',
-                category: 'Defence Tech',
-                duration: '2:56'
+                category: 'Finance',
+                duration: '2:40'
             },
             {
                 id: '2',
                 title: 'Defence Contractor Consolidation',
                 description: 'The dramatic story of how the defence industry consolidated.',
-                url: 'videos/2 Defence contractor consolidation - compressed.mp4',
+                url: 'videos/2 Defence contractor consolidation.mp4',
                 thumbnail: '',
                 category: 'Defence Tech',
                 duration: '3:03'
             },
             {
                 id: '3',
-                title: 'Global Median Income',
-                description: 'Understanding wealth distribution around the world.',
-                url: 'videos/3 Global Median Income - compressed.mp4',
+                title: 'Anduril: The Arcade of Defence',
+                description: 'How Palmer Luckey built a defence tech empire after Oculus.',
+                url: 'videos/3 Anduril.mp4',
                 thumbnail: '',
-                category: 'Finance',
-                duration: '2:30'
+                category: 'Defence Tech',
+                duration: '2:56'
             },
             {
                 id: '4',
+                title: 'Retro Arcade REITs',
+                description: 'The surprising intersection of gaming nostalgia and real estate.',
+                url: 'videos/4 Retro arcade REITs.mp4',
+                thumbnail: '',
+                category: 'Finance',
+                duration: '2:44'
+            },
+            {
+                id: '5',
                 title: 'Kwinana',
                 description: 'The business story behind this unique opportunity.',
-                url: 'videos/4 Kwinana.mov',
+                url: 'videos/5 Kwinana.mp4',
                 thumbnail: '',
                 category: 'Real Estate',
                 duration: '1:30'
             },
             {
-                id: '5',
-                title: 'REITs Explained',
-                description: 'How Real Estate Investment Trusts work and why they matter.',
-                url: 'videos/5 REITs - compressed.mp4',
-                thumbnail: '',
-                category: 'Finance',
-                duration: '2:40'
-            },
-            {
                 id: '6',
-                title: 'Retro Arcade REITs',
-                description: 'The surprising intersection of gaming nostalgia and real estate.',
-                url: 'videos/6 Retro arcade REITs - compressed.mp4',
+                title: 'Global Median Income',
+                description: 'Understanding wealth distribution around the world.',
+                url: 'videos/6 Global Median Income.mp4',
                 thumbnail: '',
                 category: 'Finance',
-                duration: '2:44'
+                duration: '2:30'
             }
         ];
 
@@ -1705,16 +1705,13 @@
             const lastScrollTime = useRef(0); // Track last scroll time
 
             const minSwipeDistance = 50;
-            const SCROLL_COOLDOWN = 800; // Minimum time between scroll navigations (ms)
+            const SCROLL_COOLDOWN = 1200; // Minimum time between scroll navigations (ms)
             const hasRecordedFirstView = useRef(false);
 
-            // Count first video as a view so all 6 videos use all 6 views
+            // First video is free - don't count it
             useEffect(() => {
                 if (videos.length > 0 && !hasRecordedFirstView.current) {
                     hasRecordedFirstView.current = true;
-                    if (accessControl.canWatch) {
-                        accessControl.recordView();
-                    }
                 }
             }, [videos.length, accessControl]);
 
@@ -1734,7 +1731,17 @@
                     }
 
                     // Going to a new video - try to record the view
+                    // Last video consumes all remaining views
+                    const isLastVideo = nextIndex === videos.length - 1;
+
                     if (accessControl.recordView()) {
+                        // If last video, consume all remaining views
+                        if (isLastVideo) {
+                            // Record views until we hit 0
+                            while (accessControl.viewsRemaining > 0) {
+                                accessControl.recordView();
+                            }
+                        }
                         setCurrentIndex(nextIndex);
                         setMaxWatchedIndex(nextIndex);
                     }
