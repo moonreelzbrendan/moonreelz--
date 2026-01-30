@@ -1126,7 +1126,7 @@
                     id: 'business',
                     name: 'Business',
                     isContactSales: true,
-                    slogan: 'Help your team grow your business by knowing more about business than their boss',
+                    slogan: 'Grow your business by building a team that knows more than the boss.',
                     features: [
                         'Team accounts (5-50 seats) — Manage multiple users under one billing',
                         'Admin dashboard — See who\'s watching what, track engagement',
@@ -1438,6 +1438,39 @@
                                         ))}
                                     </ul>
 
+                                    {/* Select Plan button for Pro and Power User */}
+                                    {!plan.isContactSales && plan.id !== PLANS.FREE && !plan.current && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleSelectPlan(plan.id);
+                                            }}
+                                            style={{
+                                                marginTop: '12px',
+                                                padding: '10px 16px',
+                                                background: `linear-gradient(135deg, ${plan.color}, ${plan.color}dd)`,
+                                                border: 'none',
+                                                borderRadius: '10px',
+                                                color: '#fff',
+                                                fontSize: '14px',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                                width: '100%',
+                                                transition: 'transform 0.2s, opacity 0.2s'
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.target.style.transform = 'scale(1.02)';
+                                                e.target.style.opacity = '0.9';
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.target.style.transform = 'scale(1)';
+                                                e.target.style.opacity = '1';
+                                            }}
+                                        >
+                                            Select {plan.name}
+                                        </button>
+                                    )}
+
                                     {/* Contact Sales buttons for Business/Enterprise */}
                                     {plan.isContactSales && (
                                         <div style={{
@@ -1547,12 +1580,14 @@
 
                         {/* Footer note */}
                         <p style={{
-                            color: 'rgba(255,255,255,0.4)',
-                            fontSize: '12px',
-                            marginTop: '20px'
+                            color: 'rgba(255,255,255,0.6)',
+                            fontSize: '14px',
+                            marginTop: '24px',
+                            marginBottom: '20px',
+                            fontWeight: '500'
                         }}>
                             {currentPlan === PLANS.FREE
-                                ? 'Free users get 6 reels per day. Resets at midnight.'
+                                ? '🎬 6 FREE reels every day. Resets at midnight.'
                                 : 'Thank you for supporting MoonReelz!'}
                         </p>
                     </div>
@@ -1745,6 +1780,16 @@
                 }
             }, [currentIndex]);
 
+            // Handle video end - show plans on last video, otherwise go to next
+            const handleVideoEnd = useCallback(() => {
+                if (currentIndex === videos.length - 1) {
+                    // Last video ended - show upgrade modal
+                    accessControl.openUpgradeModal();
+                } else {
+                    goToNext();
+                }
+            }, [currentIndex, videos.length, accessControl, goToNext]);
+
             const onTouchStart = (e) => {
                 setTouchEnd(null);
                 setTouchStart(e.targetTouches[0].clientY);
@@ -1931,7 +1976,7 @@
                                     <VideoPlayer
                                         video={video}
                                         isActive={index === currentIndex && (accessControl.canWatch || index <= maxWatchedIndex) && !accessControl.showUpgradeModal}
-                                        onVideoEnd={goToNext}
+                                        onVideoEnd={handleVideoEnd}
                                         isMuted={isMuted}
                                         onToggleMute={() => setIsMuted(!isMuted)}
                                         onTimeUpdate={index === currentIndex ? (remaining) => setTimeRemaining(remaining) : undefined}
@@ -3186,12 +3231,6 @@
                             margin: '0 auto 8px auto'
                         }}>
                             Discover how the most successful companies built their empires. Get inspired. Build yours.
-                        </p>
-                        <p style={{
-                            color: 'rgba(255,255,255,0.5)',
-                            fontSize: '14px'
-                        }}>
-                            Explore {CATEGORIES.length} categories
                         </p>
                     </div>
 
