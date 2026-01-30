@@ -1730,15 +1730,8 @@
                         return;
                     }
 
-                    // Going to a new video - try to record the view
-                    // Last video costs 2 views to use up remaining views
-                    const isLastVideo = nextIndex === videos.length - 1;
-
+                    // Going to a new video - each video costs 1 view
                     if (accessControl.recordView()) {
-                        // If last video, record one extra view (2 total)
-                        if (isLastVideo) {
-                            accessControl.recordView();
-                        }
                         setCurrentIndex(nextIndex);
                         setMaxWatchedIndex(nextIndex);
                     }
