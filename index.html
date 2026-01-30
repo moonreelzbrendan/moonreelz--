@@ -569,12 +569,17 @@
 
             // Reset daily views (for testing purposes)
             const resetDailyViews = () => {
-                console.log('RESET: Before reset, dailyViews =', getStorageItem(STORAGE_KEYS.DAILY_VIEWS, 0));
-                setStorageItem(STORAGE_KEYS.DAILY_VIEWS, 0);
-                setStorageItem(STORAGE_KEYS.LAST_VIEW_DATE, new Date().toDateString());
-                console.log('RESET: After reset, dailyViews =', getStorageItem(STORAGE_KEYS.DAILY_VIEWS, 0));
-                checkAccess();
-                console.log('RESET: After checkAccess, state should update');
+                // Use localStorage directly to ensure it works
+                localStorage.setItem('moonreelz_daily_views', JSON.stringify(0));
+                localStorage.setItem('moonreelz_last_view_date', JSON.stringify(new Date().toDateString()));
+
+                // Force state update directly
+                setAccessState({
+                    plan: PLANS.FREE,
+                    viewsRemaining: FREE_DAILY_LIMIT,
+                    viewsUsed: 0,
+                    canWatch: true
+                });
             };
 
             const upgradeToPlan = (plan) => {
