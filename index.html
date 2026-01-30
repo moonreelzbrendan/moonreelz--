@@ -1708,12 +1708,13 @@
             const SCROLL_COOLDOWN = 800; // Minimum time between scroll navigations (ms)
             const hasRecordedFirstView = useRef(false);
 
-            // First video is free - don't count it as a view
-            // Views only count when swiping to video 2, 3, etc.
+            // Count first video as a view so all 6 videos use all 6 views
             useEffect(() => {
                 if (videos.length > 0 && !hasRecordedFirstView.current) {
                     hasRecordedFirstView.current = true;
-                    // Don't record view for first video - it's free
+                    if (accessControl.canWatch) {
+                        accessControl.recordView();
+                    }
                 }
             }, [videos.length, accessControl]);
 
