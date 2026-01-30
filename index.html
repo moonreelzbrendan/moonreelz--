@@ -1,0 +1,3453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MoonReelz - Watch the World's Business Models</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body, #root {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: #fff;
+        }
+
+        /* Hide scrollbar */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Custom animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-8px); }
+            60% { transform: translateY(-4px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // ==================== CONSTANTS ====================
+        const ADMIN_PASSWORD = 'moonreelz2024';
+        const ADMIN_ROUTE = '/moonreelz-admin-panel';
+        const STORAGE_KEYS = {
+            VIDEOS: 'moonreelz_videos',
+            DAILY_VIEWS: 'moonreelz_daily_views',
+            LAST_VIEW_DATE: 'moonreelz_last_view_date',
+            USER_PLAN: 'moonreelz_user_plan',
+            ADMIN_AUTH: 'moonreelz_admin_auth'
+        };
+        const FREE_DAILY_LIMIT = 6;
+        const PLANS = {
+            FREE: 'free',
+            PRO: 'pro',
+            POWER: 'power'
+        };
+
+        // ==================== SAMPLE VIDEOS ====================
+        const SAMPLE_VIDEOS = [
+            {
+                id: '1',
+                title: 'Anduril: The Arcade of Defence',
+                description: 'How Palmer Luckey built a defence tech empire after Oculus.',
+                url: 'videos/1 Anduril Arcade - small.mp4',
+                thumbnail: '',
+                category: 'Defence Tech',
+                duration: '2:56'
+            },
+            {
+                id: '2',
+                title: 'Defence Contractor Consolidation',
+                description: 'The dramatic story of how the defence industry consolidated.',
+                url: 'videos/2 Defence contractor consolidation - compressed.mp4',
+                thumbnail: '',
+                category: 'Defence Tech',
+                duration: '3:03'
+            },
+            {
+                id: '3',
+                title: 'Global Median Income',
+                description: 'Understanding wealth distribution around the world.',
+                url: 'videos/3 Global Median Income - compressed.mp4',
+                thumbnail: '',
+                category: 'Finance',
+                duration: '2:30'
+            },
+            {
+                id: '4',
+                title: 'Kwinana',
+                description: 'The business story behind this unique opportunity.',
+                url: 'videos/4 Kwinana.mov',
+                thumbnail: '',
+                category: 'Real Estate',
+                duration: '1:30'
+            },
+            {
+                id: '5',
+                title: 'REITs Explained',
+                description: 'How Real Estate Investment Trusts work and why they matter.',
+                url: 'videos/5 REITs - compressed.mp4',
+                thumbnail: '',
+                category: 'Finance',
+                duration: '2:40'
+            },
+            {
+                id: '6',
+                title: 'Retro Arcade REITs',
+                description: 'The surprising intersection of gaming nostalgia and real estate.',
+                url: 'videos/6 Retro arcade REITs - compressed.mp4',
+                thumbnail: '',
+                category: 'Finance',
+                duration: '2:44'
+            }
+        ];
+
+        // ==================== CATEGORIES ====================
+        const CATEGORIES = [
+            { id: 'small-business', name: 'Small Business', tag: 'Growing', description: 'Local cafes, service providers, and micro-enterprises', views: '1.2M', color: '#22c55e' },
+            { id: 'franchise', name: 'Franchise Models', tag: 'Popular', description: "McDonald's, Subway, and scalable business systems", views: '980K', color: '#8b5cf6' },
+            { id: 'first-time', name: 'First Time Business Owners', tag: 'Inspiring', description: 'Profit & Loss, GST returns, raising an invoice in Xero, tax withholding', views: '850K', color: '#f59e0b' },
+            { id: 'traditional', name: 'Traditional Business Models', tag: 'Classic', description: 'Railroads, law firms, hotels, talent agencies, newspapers, gyms', views: '920K', color: '#6b7280' },
+            { id: 'ecommerce', name: 'E-commerce Masters', tag: 'Trending', description: 'Amazon, Shopify, and the online retail revolution', views: '1.8M', color: '#ec4899' },
+            { id: 'subscription', name: 'Subscription Success', tag: 'Popular', description: 'Netflix, Spotify, and recurring revenue models', views: '1.9M', color: '#8b5cf6' },
+            { id: 'fintech', name: 'Fintech Disruptors', tag: 'Hot', description: 'PayPal, Stripe, and the future of payments', views: '1.5M', color: '#ef4444' },
+            { id: 'private-credit', name: 'Private Credit', tag: 'Exclusive', description: 'Alternative lending and direct financing models', views: '650K', color: '#a855f7' },
+            { id: 'private-equity', name: 'Private Equity', tag: 'Elite', description: 'Blackstone, KKR, and wealth creation strategies', views: '720K', color: '#fbbf24' },
+            { id: 'investment-banking', name: 'Investment Banking', tag: 'Premium', description: 'Goldman Sachs, JPMorgan, and deal-making mastery', views: '890K', color: '#3b82f6' },
+            { id: 'angel-investing', name: 'Angel Investing', tag: 'Trending', description: 'Early-stage funding and startup acceleration', views: '770K', color: '#ec4899' },
+            { id: 'tech-giants', name: 'Tech Giants', tag: 'Most Viewed', description: 'How Apple, Google, and Microsoft built their empires', views: '2.1M', color: '#06b6d4' },
+            { id: 'public-companies', name: 'Public Companies', tag: 'Popular', description: 'NYSE, NASDAQ, and the world of publicly traded enterprises', views: '1.7M', color: '#8b5cf6' },
+            { id: 'ceo-profiles', name: 'CEO Profiles', tag: 'Inspiring', description: 'The climb to CEO', views: '1.4M', color: '#f59e0b' },
+            { id: 'war', name: 'War', tag: 'Strategic', description: 'Military strategy, defense industries, and geopolitical conflicts', views: '1.2M', color: '#64748b' },
+            { id: 'gambling', name: 'Gambling', tag: 'Hot', description: 'Casinos, sports betting, and prediction markets', views: '1.6M', color: '#ef4444' },
+            { id: 'gaming', name: 'Gaming', tag: 'Trending', description: 'Video games, esports, and interactive entertainment', views: '2.3M', color: '#ec4899' },
+            { id: 'music', name: 'Music', tag: 'Popular', description: 'Record labels, streaming platforms, and entertainment industry', views: '1.9M', color: '#8b5cf6' },
+            { id: 'business-news', name: 'Business News', tag: 'New', description: 'Latest trends, market insights, and industry updates', views: '1.3M', color: '#10b981' },
+            { id: 'strategy', name: 'Strategy', tag: 'Essential', description: 'Competitive positioning, market entry, and winning tactics', views: '1.1M', color: '#0ea5e9' },
+            { id: 'dealmaking', name: 'Dealmaking', tag: 'Skill', description: 'Deal-making techniques and persuasion mastery', views: '950K', color: '#f97316' },
+            { id: 'finance', name: 'Finance', tag: 'Fundamental', description: 'Accounting basics, economics and financial instruments', views: '1.4M', color: '#14b8a6' },
+            { id: 'advertising', name: 'Advertising', tag: 'Creative', description: 'Marketing campaigns, brand building, and creative strategies', views: '1.3M', color: '#a855f7' },
+            { id: 'beauty', name: 'Beauty', tag: 'Trending', description: 'Cosmetics, skincare, wellness, and the beauty industry', views: '2.0M', color: '#ec4899' },
+            { id: 'luxury', name: 'Luxury Items', tag: 'Premium', description: 'High-end fashion, premium brands, and luxury goods markets', views: '1.8M', color: '#3b82f6' },
+            { id: 'ai', name: 'AI', tag: 'Hot', description: 'Artificial intelligence, machine learning, and future of technology', views: '2.5M', color: '#ef4444' },
+            { id: 'sports', name: 'Sports', tag: 'Popular', description: 'Professional leagues, teams, athletes, and business of sports', views: '2.2M', color: '#8b5cf6' },
+            { id: 'healthcare', name: 'Healthcare', tag: 'Essential', description: 'Hospitals, pharmaceuticals, medical devices, and health services', views: '1.6M', color: '#0ea5e9' },
+            { id: 'cryptocurrency', name: 'Cryptocurrency', tag: 'Hot', description: 'Bitcoin, blockchain technology, and digital asset markets', views: '2.4M', color: '#ef4444' },
+            { id: 'real-estate', name: 'Real Estate', tag: 'Classic', description: 'Property development, REITs, commercial real estate, and housing', views: '1.7M', color: '#6b7280' },
+            { id: 'legal', name: 'Legal Industry', tag: 'Professional', description: 'Law firms, litigation, corporate law, and legal services', views: '1.1M', color: '#64748b' },
+            { id: 'residential', name: 'Residential Property', tag: 'Popular', description: 'Home buying, rental markets, property management, and investing', views: '1.5M', color: '#8b5cf6' }
+        ];
+
+        // Tag colors for badges
+        const TAG_COLORS = {
+            'Hot': '#ef4444',
+            'Trending': '#ec4899',
+            'Popular': '#8b5cf6',
+            'New': '#10b981',
+            'Essential': '#0ea5e9',
+            'Premium': '#3b82f6',
+            'Exclusive': '#a855f7',
+            'Elite': '#fbbf24',
+            'Classic': '#6b7280',
+            'Inspiring': '#f59e0b',
+            'Growing': '#22c55e',
+            'Strategic': '#64748b',
+            'Skill': '#f97316',
+            'Fundamental': '#14b8a6',
+            'Creative': '#a855f7',
+            'Professional': '#64748b',
+            'Most Viewed': '#06b6d4'
+        };
+
+        // ==================== UTILITY FUNCTIONS ====================
+        const getStorageItem = (key, defaultValue) => {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch {
+                return defaultValue;
+            }
+        };
+
+        const setStorageItem = (key, value) => {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                console.error('Storage error:', e);
+            }
+        };
+
+        const formatTimeRemaining = (ms) => {
+            const hours = Math.floor(ms / (1000 * 60 * 60));
+            const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+            if (hours > 0) return `${hours}h ${minutes}m`;
+            return `${minutes}m`;
+        };
+
+        // ==================== INDEXED DB FOR VIDEO STORAGE ====================
+        const DB_NAME = 'moonreelz_videos_db';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'videos';
+
+        const openDB = () => {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+            });
+        };
+
+        const saveVideoToDB = async (id, file) => {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put({ id, file, createdAt: Date.now() });
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve();
+            });
+        };
+
+        const getVideoFromDB = async (id) => {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(id);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+            });
+        };
+
+        const deleteVideoFromDB = async (id) => {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(id);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve();
+            });
+        };
+
+        const formatFileSize = (bytes) => {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        };
+
+        // ==================== ICONS ====================
+        const Icons = {
+            Play: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            ),
+            Pause: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+            ),
+            Heart: ({ filled }) => (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill={filled ? "#ff2d55" : "none"} stroke={filled ? "#ff2d55" : "currentColor"} strokeWidth="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+            ),
+            Share: () => (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <polyline points="16 6 12 2 8 6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+            ),
+            Bookmark: ({ filled }) => (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill={filled ? "#fff" : "none"} stroke="currentColor" strokeWidth="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+            ),
+            Comment: () => (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
+            ),
+            Moon: () => (
+                <svg width="32" height="32" viewBox="0 0 24 24">
+                    <defs>
+                        <linearGradient id="playGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#8B5CF6"/>
+                            <stop offset="100%" stopColor="#EC4899"/>
+                        </linearGradient>
+                        <mask id="moonMask">
+                            <rect width="24" height="24" fill="white"/>
+                            <circle cx="12" cy="7" r="8" fill="black"/>
+                        </mask>
+                    </defs>
+                    <g transform="rotate(90 12 12)">
+                        {/* Crescent moon - hollow now on right side */}
+                        <circle cx="12" cy="12" r="10" fill="currentColor" mask="url(#moonMask)"/>
+                        {/* Play button - smaller and centered in hollow */}
+                        <polygon points="12,2 8,9 16,9" fill="url(#playGradient)"/>
+                    </g>
+                </svg>
+            ),
+            ChevronUp: () => (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="18 15 12 9 6 15"/>
+                </svg>
+            ),
+            ChevronDown: () => (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            ),
+            Lock: () => (
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            ),
+            Plus: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+            ),
+            Trash: () => (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+            ),
+            Edit: () => (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            ),
+            ArrowLeft: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="19" y1="12" x2="5" y2="12"/>
+                    <polyline points="12 19 5 12 12 5"/>
+                </svg>
+            ),
+            Crown: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.5 18.5l2-8 4.5 3 3-6 3 6 4.5-3 2 8h-19z"/>
+                </svg>
+            ),
+            Settings: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            ),
+            VolumeX: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <line x1="23" y1="9" x2="17" y2="15"/>
+                    <line x1="17" y1="9" x2="23" y2="15"/>
+                </svg>
+            ),
+            Volume2: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+            ),
+            Upload: () => (
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+            ),
+            Film: () => (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                    <line x1="7" y1="2" x2="7" y2="22"/>
+                    <line x1="17" y1="2" x2="17" y2="22"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <line x1="2" y1="7" x2="7" y2="7"/>
+                    <line x1="2" y1="17" x2="7" y2="17"/>
+                    <line x1="17" y1="17" x2="22" y2="17"/>
+                    <line x1="17" y1="7" x2="22" y2="7"/>
+                </svg>
+            ),
+            CheckCircle: () => (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            ),
+            Grid: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+            ),
+            Home: () => (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+            ),
+            Eye: () => (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            ),
+            GripVertical: () => (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="9" cy="6" r="1.5"/>
+                    <circle cx="15" cy="6" r="1.5"/>
+                    <circle cx="9" cy="12" r="1.5"/>
+                    <circle cx="15" cy="12" r="1.5"/>
+                    <circle cx="9" cy="18" r="1.5"/>
+                    <circle cx="15" cy="18" r="1.5"/>
+                </svg>
+            ),
+            ChevronUpSmall: () => (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="18 15 12 9 6 15"/>
+                </svg>
+            ),
+            ChevronDownSmall: () => (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            )
+        };
+
+        // ==================== ACCESS CONTROL HOOK ====================
+        const useAccessControl = () => {
+            const [accessState, setAccessState] = useState({
+                plan: PLANS.FREE,
+                viewsRemaining: FREE_DAILY_LIMIT,
+                viewsUsed: 0,
+                canWatch: true
+            });
+            const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+            useEffect(() => {
+                checkAccess();
+            }, []);
+
+            const checkAccess = () => {
+                const userPlan = getStorageItem(STORAGE_KEYS.USER_PLAN, PLANS.FREE);
+
+                // Pro and Power users have unlimited access
+                if (userPlan === PLANS.PRO || userPlan === PLANS.POWER) {
+                    setAccessState({
+                        plan: userPlan,
+                        viewsRemaining: Infinity,
+                        viewsUsed: 0,
+                        canWatch: true
+                    });
+                    return;
+                }
+
+                // Free users: check daily views
+                const lastViewDate = getStorageItem(STORAGE_KEYS.LAST_VIEW_DATE, null);
+                const today = new Date().toDateString();
+                let dailyViews = getStorageItem(STORAGE_KEYS.DAILY_VIEWS, 0);
+
+                if (lastViewDate !== today) {
+                    // New day, reset views
+                    dailyViews = 0;
+                    setStorageItem(STORAGE_KEYS.DAILY_VIEWS, 0);
+                    setStorageItem(STORAGE_KEYS.LAST_VIEW_DATE, today);
+                }
+
+                // Calculate display value: show 6/6 on video 1, 0/6 after video 6
+                // Formula: if used all views, show 0; otherwise show (limit - views + 1) capped at limit
+                const viewsRemaining = dailyViews >= FREE_DAILY_LIMIT
+                    ? 0
+                    : Math.min(FREE_DAILY_LIMIT, FREE_DAILY_LIMIT - dailyViews + 1);
+                setAccessState({
+                    plan: PLANS.FREE,
+                    viewsRemaining,
+                    viewsUsed: dailyViews,
+                    canWatch: dailyViews < FREE_DAILY_LIMIT
+                });
+            };
+
+            const recordView = () => {
+                const userPlan = getStorageItem(STORAGE_KEYS.USER_PLAN, PLANS.FREE);
+
+                // Pro and Power users don't need to track views
+                if (userPlan === PLANS.PRO || userPlan === PLANS.POWER) {
+                    return true;
+                }
+
+                const today = new Date().toDateString();
+                const lastViewDate = getStorageItem(STORAGE_KEYS.LAST_VIEW_DATE, null);
+                let dailyViews = getStorageItem(STORAGE_KEYS.DAILY_VIEWS, 0);
+
+                if (lastViewDate !== today) {
+                    dailyViews = 0;
+                    setStorageItem(STORAGE_KEYS.LAST_VIEW_DATE, today);
+                }
+
+                // Block if already used all views (allow exactly FREE_DAILY_LIMIT views)
+                if (dailyViews >= FREE_DAILY_LIMIT) {
+                    setShowUpgradeModal(true);
+                    return false;
+                }
+
+                dailyViews++;
+                setStorageItem(STORAGE_KEYS.DAILY_VIEWS, dailyViews);
+                checkAccess();
+
+                // Debug: log current view count
+                console.log(`View recorded: ${dailyViews}/${FREE_DAILY_LIMIT}`);
+                return true;
+            };
+
+            // Reset daily views (for testing purposes)
+            const resetDailyViews = () => {
+                setStorageItem(STORAGE_KEYS.DAILY_VIEWS, 0);
+                setStorageItem(STORAGE_KEYS.LAST_VIEW_DATE, new Date().toDateString());
+                checkAccess();
+            };
+
+            const upgradeToPlan = (plan) => {
+                setStorageItem(STORAGE_KEYS.USER_PLAN, plan);
+                setShowUpgradeModal(false);
+                checkAccess();
+            };
+
+            const openUpgradeModal = () => setShowUpgradeModal(true);
+            const closeUpgradeModal = () => setShowUpgradeModal(false);
+
+            return {
+                ...accessState,
+                recordView,
+                resetDailyViews,
+                upgradeToPlan,
+                checkAccess,
+                showUpgradeModal,
+                openUpgradeModal,
+                closeUpgradeModal
+            };
+        };
+
+        // ==================== VIDEO PLAYER COMPONENT ====================
+        const VideoPlayer = ({ video, isActive, onVideoEnd, isMuted, onToggleMute, onTimeUpdate }) => {
+            const videoRef = useRef(null);
+            const progressBarRef = useRef(null);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [progress, setProgress] = useState(0);
+            const [currentTime, setCurrentTime] = useState(0);
+            const [duration, setDuration] = useState(0);
+            const [isLiked, setIsLiked] = useState(false);
+            const [isSaved, setIsSaved] = useState(false);
+            const [showPlayIcon, setShowPlayIcon] = useState(false);
+            const [isLoading, setIsLoading] = useState(true);
+            const [hasError, setHasError] = useState(false);
+            const [isDragging, setIsDragging] = useState(false);
+            const wasPlayingRef = useRef(false);
+
+            // Format time as M:SS
+            const formatTime = (seconds) => {
+                if (!seconds || isNaN(seconds)) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            useEffect(() => {
+                if (videoRef.current) {
+                    if (isActive) {
+                        const playPromise = videoRef.current.play();
+                        if (playPromise !== undefined) {
+                            playPromise
+                                .then(() => {
+                                    setIsPlaying(true);
+                                })
+                                .catch((error) => {
+                                    console.error('Video play error:', error);
+                                    setIsPlaying(false);
+                                });
+                        }
+                    } else {
+                        videoRef.current.pause();
+                        videoRef.current.currentTime = 0;
+                        setIsPlaying(false);
+                    }
+                }
+            }, [isActive]);
+
+            useEffect(() => {
+                if (videoRef.current) {
+                    videoRef.current.muted = isMuted;
+                }
+            }, [isMuted]);
+
+            const handleTimeUpdate = () => {
+                if (videoRef.current) {
+                    const currentTime = videoRef.current.currentTime;
+                    const duration = videoRef.current.duration;
+                    const progress = (currentTime / duration) * 100;
+                    setProgress(progress);
+                    setCurrentTime(currentTime);
+                    setDuration(duration);
+
+                    // Report time remaining to parent
+                    if (onTimeUpdate && duration) {
+                        onTimeUpdate(duration - currentTime);
+                    }
+                }
+            };
+
+            const handleCanPlay = () => {
+                setIsLoading(false);
+                setHasError(false);
+            };
+
+            const handleLoadedMetadata = () => {
+                if (videoRef.current) {
+                    setDuration(videoRef.current.duration);
+                }
+            };
+
+            const handleWaiting = () => {
+                setIsLoading(true);
+            };
+
+            const handlePlaying = () => {
+                setIsLoading(false);
+                setIsPlaying(true);
+            };
+
+            const handleError = (e) => {
+                console.error('Video error:', e);
+                setHasError(true);
+                setIsLoading(false);
+            };
+
+            const togglePlay = () => {
+                if (videoRef.current && !hasError) {
+                    if (isPlaying) {
+                        videoRef.current.pause();
+                        setIsPlaying(false);
+                    } else {
+                        videoRef.current.play().catch(console.error);
+                    }
+                    setShowPlayIcon(true);
+                    setTimeout(() => setShowPlayIcon(false), 500);
+                }
+            };
+
+            const handleVideoEnd = () => {
+                if (onVideoEnd) onVideoEnd();
+            };
+
+            // Progress bar drag handlers
+            const seekToPosition = (clientX) => {
+                if (progressBarRef.current && videoRef.current && duration) {
+                    const rect = progressBarRef.current.getBoundingClientRect();
+                    const clickX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+                    const percentage = clickX / rect.width;
+                    videoRef.current.currentTime = percentage * duration;
+                }
+            };
+
+            const handleProgressMouseDown = (e) => {
+                e.preventDefault();
+                wasPlayingRef.current = isPlaying;
+                setIsDragging(true);
+                if (videoRef.current) {
+                    videoRef.current.pause();
+                }
+                seekToPosition(e.clientX);
+            };
+
+            const handleProgressMouseMove = (e) => {
+                if (isDragging) {
+                    seekToPosition(e.clientX);
+                }
+            };
+
+            const handleProgressMouseUp = () => {
+                if (isDragging) {
+                    setIsDragging(false);
+                    if (wasPlayingRef.current && videoRef.current) {
+                        videoRef.current.play().catch(console.error);
+                    }
+                }
+            };
+
+            // Add/remove global mouse listeners for dragging
+            useEffect(() => {
+                if (isDragging) {
+                    window.addEventListener('mousemove', handleProgressMouseMove);
+                    window.addEventListener('mouseup', handleProgressMouseUp);
+                    return () => {
+                        window.removeEventListener('mousemove', handleProgressMouseMove);
+                        window.removeEventListener('mouseup', handleProgressMouseUp);
+                    };
+                }
+            }, [isDragging]);
+
+            return (
+                <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    background: '#000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    {/* Loading Spinner - only for non-Streamable videos */}
+                    {isLoading && !hasError && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            zIndex: 15
+                        }}>
+                            <div style={{
+                                width: '50px',
+                                height: '50px',
+                                border: '3px solid rgba(255,255,255,0.2)',
+                                borderTopColor: '#8B5CF6',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite'
+                            }} />
+                        </div>
+                    )}
+
+                    {/* Error State */}
+                    {hasError && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            textAlign: 'center',
+                            zIndex: 15,
+                            padding: '20px'
+                        }}>
+                            <div style={{ fontSize: '48px', marginBottom: '12px' }}>⚠️</div>
+                            <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>
+                                Video failed to load
+                            </p>
+                            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>
+                                {video.isLocal ? 'Local file may have been removed' : 'Check the video URL'}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Video Player */}
+                    {video.url && (
+                        <video
+                            ref={videoRef}
+                            src={video.url}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                opacity: hasError ? 0.3 : 1
+                            }}
+                            loop
+                            muted={isMuted}
+                            playsInline
+                            preload="auto"
+                            onClick={togglePlay}
+                            onTimeUpdate={handleTimeUpdate}
+                            onLoadedMetadata={handleLoadedMetadata}
+                            onEnded={handleVideoEnd}
+                            onCanPlay={handleCanPlay}
+                            onWaiting={handleWaiting}
+                            onPlaying={handlePlaying}
+                            onError={handleError}
+                        />
+                    )}
+
+                    {/* Play/Pause Icon Overlay */}
+                    {showPlayIcon && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'rgba(0,0,0,0.5)',
+                            borderRadius: '50%',
+                            width: '80px',
+                            height: '80px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            animation: 'fadeIn 0.2s ease-out'
+                        }}>
+                            {isPlaying ? <Icons.Play /> : <Icons.Pause />}
+                        </div>
+                    )}
+
+                    {/* Progress Bar with Time */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '16px',
+                        left: '16px',
+                        right: '16px',
+                        zIndex: 25,
+                        padding: '10px 14px',
+                        background: 'rgba(0,0,0,0.75)',
+                        borderRadius: '12px',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255,255,255,0.15)'
+                    }}>
+                        {/* Progress bar track */}
+                        <div
+                        ref={progressBarRef}
+                        style={{
+                            width: '100%',
+                            height: '8px',
+                            background: 'rgba(255,255,255,0.3)',
+                            borderRadius: '4px',
+                            overflow: 'visible',
+                            cursor: 'pointer',
+                            marginBottom: '8px',
+                            position: 'relative'
+                        }}
+                        onMouseDown={handleProgressMouseDown}
+                        >
+                            <div style={{
+                                width: `${progress}%`,
+                                height: '100%',
+                                background: 'linear-gradient(90deg, #8B5CF6, #EC4899)',
+                                borderRadius: '4px',
+                                transition: isDragging ? 'none' : 'width 0.1s linear',
+                                position: 'relative'
+                            }}>
+                                {/* Drag handle */}
+                                <div style={{
+                                    position: 'absolute',
+                                    right: '-6px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    width: '14px',
+                                    height: '14px',
+                                    background: '#fff',
+                                    borderRadius: '50%',
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    opacity: isDragging ? 1 : 0,
+                                    transition: 'opacity 0.15s ease'
+                                }} />
+                            </div>
+                        </div>
+                        {/* Time display */}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                        }}>
+                            <span style={{ color: '#fff' }}>
+                                {formatTime(currentTime)}
+                            </span>
+                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>
+                                {formatTime(duration - currentTime)} remaining
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Video Info Overlay */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '140px',
+                        left: '16px',
+                        right: '70px',
+                        zIndex: 10
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginBottom: '8px'
+                        }}>
+                            <span style={{
+                                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                                padding: '4px 10px',
+                                borderRadius: '20px',
+                                fontSize: '12px',
+                                fontWeight: '600'
+                            }}>
+                                {video.category || 'Business'}
+                            </span>
+                            <span style={{
+                                color: 'rgba(255,255,255,0.7)',
+                                fontSize: '12px'
+                            }}>
+                                {video.duration || '2:00'}
+                            </span>
+                        </div>
+                        <h2 style={{
+                            fontSize: '18px',
+                            fontWeight: '700',
+                            marginBottom: '8px',
+                            textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                        }}>
+                            {video.title}
+                        </h2>
+                        <p style={{
+                            fontSize: '14px',
+                            color: 'rgba(255,255,255,0.8)',
+                            lineHeight: '1.4',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                        }}>
+                            {video.description}
+                        </p>
+                    </div>
+
+                    {/* Side Actions */}
+                    <div style={{
+                        position: 'absolute',
+                        right: '12px',
+                        bottom: '180px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px',
+                        alignItems: 'center'
+                    }}>
+                        <button
+                            onClick={() => setIsLiked(!isLiked)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: '#fff'
+                            }}
+                        >
+                            <Icons.Heart filled={isLiked} />
+                            <span style={{ fontSize: '12px' }}>{isLiked ? '1.3K' : '1.2K'}</span>
+                        </button>
+                        <button
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: '#fff'
+                            }}
+                        >
+                            <Icons.Comment />
+                            <span style={{ fontSize: '12px' }}>48</span>
+                        </button>
+                        <button
+                            onClick={() => setIsSaved(!isSaved)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: '#fff'
+                            }}
+                        >
+                            <Icons.Bookmark filled={isSaved} />
+                            <span style={{ fontSize: '12px' }}>Save</span>
+                        </button>
+                        <button
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: '#fff'
+                            }}
+                        >
+                            <Icons.Share />
+                            <span style={{ fontSize: '12px' }}>Share</span>
+                        </button>
+                    </div>
+
+                    {/* Mute Button */}
+                    <button
+                        onClick={onToggleMute}
+                        style={{
+                            position: 'absolute',
+                            top: '60px',
+                            right: '16px',
+                            background: 'rgba(0,0,0,0.5)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: '#fff'
+                        }}
+                    >
+                        {isMuted ? <Icons.VolumeX /> : <Icons.Volume2 />}
+                    </button>
+                </div>
+            );
+        };
+
+        // ==================== UPGRADE MODAL COMPONENT ====================
+        const UpgradeModal = ({ isOpen, onClose, onSelectPlan, currentPlan }) => {
+            const [selectedPlan, setSelectedPlan] = useState(null);
+            const [isYearly, setIsYearly] = useState(false);
+
+            if (!isOpen) return null;
+
+            const plans = [
+                {
+                    id: PLANS.FREE,
+                    name: 'Free',
+                    monthlyPrice: '$0',
+                    yearlyPrice: '$0',
+                    period: '',
+                    subtitle: 'for one person',
+                    features: ['6 reels per day'],
+                    color: '#6B7280',
+                    current: currentPlan === PLANS.FREE
+                },
+                {
+                    id: PLANS.PRO,
+                    name: 'Pro',
+                    monthlyPrice: '$17',
+                    yearlyPrice: '$165',
+                    period: isYearly ? '/year' : '/month',
+                    subtitle: 'for one person',
+                    savings: 'Save 19%',
+                    features: ['Unlimited reels', 'Choose any category', 'Choose specific reels', 'Personalised feed', 'Ad supported'],
+                    color: '#8B5CF6',
+                    popular: true,
+                    current: currentPlan === PLANS.PRO
+                },
+                {
+                    id: PLANS.POWER,
+                    name: 'Power User',
+                    monthlyPrice: '$27',
+                    yearlyPrice: '$265',
+                    period: isYearly ? '/year' : '/month',
+                    subtitle: 'for one person',
+                    savings: 'Save 18%',
+                    features: ['Everything in Pro', 'No ads', 'Early access to features'],
+                    color: '#EC4899',
+                    current: currentPlan === PLANS.POWER
+                },
+                {
+                    id: 'business',
+                    name: 'Business',
+                    isContactSales: true,
+                    slogan: 'Help your team grow your business by knowing more about business than their boss',
+                    features: [
+                        'Team accounts (5-50 seats) — Manage multiple users under one billing',
+                        'Admin dashboard — See who\'s watching what, track engagement',
+                        'AI Curated Playlists — AI creates watching paths for specific roles (sales, marketing, ops)',
+                        'Progress tracking — See completion rates across your team',
+                        'Assign content — Push specific reels to team members',
+                        'Team leaderboards — Gamify watching, drive engagement',
+                        'Slack/Teams integration — Share reels directly in channels'
+                    ],
+                    color: '#3B82F6'
+                }
+            ];
+
+            const handleSelectPlan = (planId) => {
+                if (planId === currentPlan) return;
+                onSelectPlan(planId);
+            };
+
+            return (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.95)',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '20px',
+                    overflowY: 'auto'
+                }} className="fade-in" onClick={onClose}>
+                    <div
+                        style={{
+                            maxWidth: '1300px',
+                            width: '100%',
+                            textAlign: 'center'
+                        }}
+                        className="slide-up"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '12px',
+                            marginBottom: '8px'
+                        }}>
+                            <Icons.Moon />
+                            <h2 style={{
+                                fontSize: '28px',
+                                fontWeight: '800',
+                                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent'
+                            }}>
+                                MoonReelz
+                            </h2>
+                        </div>
+                        <p style={{
+                            color: 'rgba(255,255,255,0.9)',
+                            marginBottom: '4px',
+                            fontSize: '16px',
+                            fontWeight: '600'
+                        }}>
+                            Watch the World's Business Models
+                        </p>
+                        <p style={{
+                            color: 'rgba(255,255,255,0.6)',
+                            marginBottom: '16px',
+                            fontSize: '14px'
+                        }}>
+                            Discover how successful companies built their empires. Get inspired. Build yours.
+                        </p>
+
+                        {/* Billing Toggle */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '12px',
+                            marginBottom: '20px'
+                        }}>
+                            <span style={{
+                                color: !isYearly ? '#fff' : 'rgba(255,255,255,0.5)',
+                                fontWeight: !isYearly ? '600' : '400',
+                                fontSize: '14px',
+                                transition: 'all 0.2s ease'
+                            }}>Monthly</span>
+                            <div
+                                onClick={() => setIsYearly(!isYearly)}
+                                style={{
+                                    width: '56px',
+                                    height: '30px',
+                                    background: isYearly
+                                        ? 'linear-gradient(135deg, #8B5CF6, #EC4899)'
+                                        : 'rgba(255,255,255,0.2)',
+                                    borderRadius: '15px',
+                                    cursor: 'pointer',
+                                    position: 'relative',
+                                    transition: 'all 0.3s ease'
+                                }}
+                            >
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '3px',
+                                    left: isYearly ? '29px' : '3px',
+                                    width: '24px',
+                                    height: '24px',
+                                    background: '#fff',
+                                    borderRadius: '50%',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                }} />
+                            </div>
+                            <span style={{
+                                color: isYearly ? '#fff' : 'rgba(255,255,255,0.5)',
+                                fontWeight: isYearly ? '600' : '400',
+                                fontSize: '14px',
+                                transition: 'all 0.2s ease'
+                            }}>Yearly</span>
+                            {isYearly && (
+                                <span style={{
+                                    background: 'rgba(16, 185, 129, 0.2)',
+                                    color: '#10B981',
+                                    padding: '4px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '12px',
+                                    fontWeight: '600'
+                                }}>Save up to 19%</span>
+                            )}
+                        </div>
+
+                        {/* Plans Grid */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(4, 1fr)',
+                            gap: '10px',
+                            maxWidth: '1200px',
+                            margin: '0 auto 16px auto'
+                        }}>
+                            {plans.map((plan) => (
+                                <div
+                                    key={plan.id}
+                                    onClick={() => !plan.current && setSelectedPlan(plan.id)}
+                                    style={{
+                                        background: selectedPlan === plan.id
+                                            ? `linear-gradient(135deg, ${plan.color}22, ${plan.color}11)`
+                                            : 'rgba(255,255,255,0.03)',
+                                        border: selectedPlan === plan.id
+                                            ? `2px solid ${plan.color}`
+                                            : plan.current
+                                            ? '2px solid rgba(255,255,255,0.3)'
+                                            : '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '16px',
+                                        padding: '16px',
+                                        cursor: plan.current ? 'default' : 'pointer',
+                                        position: 'relative',
+                                        transition: 'all 0.2s ease',
+                                        opacity: plan.current ? 0.7 : 1
+                                    }}
+                                >
+                                    {/* Popular Badge */}
+                                    {plan.popular && !plan.current && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '-10px',
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                                            padding: '4px 12px',
+                                            borderRadius: '12px',
+                                            fontSize: '11px',
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase'
+                                        }}>
+                                            Most Popular
+                                        </div>
+                                    )}
+
+                                    {/* Current Badge */}
+                                    {plan.current && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '-10px',
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            background: 'rgba(255,255,255,0.2)',
+                                            padding: '4px 12px',
+                                            borderRadius: '12px',
+                                            fontSize: '11px',
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase'
+                                        }}>
+                                            Current Plan
+                                        </div>
+                                    )}
+
+                                    {/* Plan Name */}
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        marginBottom: '10px',
+                                        marginTop: plan.popular || plan.current ? '8px' : '0'
+                                    }}>
+                                        {plan.id !== PLANS.FREE && <Icons.Crown />}
+                                        <span style={{
+                                            fontSize: '20px',
+                                            fontWeight: '700',
+                                            color: plan.color
+                                        }}>{plan.name}</span>
+                                    </div>
+
+                                    {/* Slogan for Business */}
+                                    {plan.slogan && (
+                                        <p style={{
+                                            fontFamily: 'Inter, sans-serif',
+                                            fontSize: '11px',
+                                            color: 'rgba(255,255,255,0.7)',
+                                            marginBottom: '10px',
+                                            lineHeight: '1.3'
+                                        }}>{plan.slogan}</p>
+                                    )}
+
+                                    {/* Price or Contact Sales */}
+                                    <div style={{ marginBottom: '12px' }}>
+                                        {plan.isContactSales ? (
+                                            <>
+                                                {plan.contactText && (
+                                                    <div style={{
+                                                        fontFamily: 'Inter, sans-serif',
+                                                        fontSize: '13px',
+                                                        fontWeight: '500',
+                                                        color: 'rgba(255,255,255,0.85)',
+                                                        marginBottom: '8px',
+                                                        lineHeight: '1.4'
+                                                    }}>
+                                                        {plan.contactText}
+                                                    </div>
+                                                )}
+                                                {plan.subtitle && (
+                                                    <div style={{
+                                                        fontSize: '12px',
+                                                        color: plan.color,
+                                                        fontWeight: '600'
+                                                    }}>{plan.subtitle}</div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span style={{
+                                                    fontSize: '36px',
+                                                    fontWeight: '800'
+                                                }}>{isYearly ? plan.yearlyPrice : plan.monthlyPrice}</span>
+                                                <span style={{
+                                                    fontSize: '14px',
+                                                    color: 'rgba(255,255,255,0.5)'
+                                                }}>{plan.period}</span>
+                                                {plan.subtitle && (
+                                                    <div style={{
+                                                        marginTop: '6px',
+                                                        color: 'rgba(255,255,255,0.5)',
+                                                        fontSize: '12px'
+                                                    }}>{plan.subtitle}</div>
+                                                )}
+                                                {plan.id !== PLANS.FREE && !plan.isContactSales && (
+                                                    <div style={{
+                                                        marginTop: '6px',
+                                                        color: 'rgba(255,255,255,0.4)',
+                                                        fontSize: '12px'
+                                                    }}>{isYearly ? 'billed annually' : 'billed monthly'}</div>
+                                                )}
+                                                {isYearly && plan.savings && (
+                                                    <div style={{
+                                                        marginTop: '6px',
+                                                        color: '#10B981',
+                                                        fontSize: '12px',
+                                                        fontWeight: '600'
+                                                    }}>{plan.savings}</div>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Features */}
+                                    <ul style={{
+                                        textAlign: 'left',
+                                        listStyle: 'none',
+                                        padding: 0,
+                                        margin: 0
+                                    }}>
+                                        {plan.features.map((feature, i) => (
+                                            <li key={i} style={{
+                                                display: 'flex',
+                                                alignItems: 'flex-start',
+                                                gap: '6px',
+                                                padding: '3px 0',
+                                                color: 'rgba(255,255,255,0.85)',
+                                                fontSize: '12px',
+                                                lineHeight: '1.3'
+                                            }}>
+                                                <span style={{ color: plan.color }}>✓</span>
+                                                {feature}
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    {/* Contact Sales buttons for Business/Enterprise */}
+                                    {plan.isContactSales && (
+                                        <div style={{
+                                            marginTop: '12px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '8px'
+                                        }}>
+                                            <button
+                                                onClick={() => window.open('mailto:sales@moonreelz.com?subject=MoonReelz ' + plan.name + ' Plan Inquiry', '_blank')}
+                                                style={{
+                                                    padding: '10px 16px',
+                                                    background: plan.color,
+                                                    border: 'none',
+                                                    borderRadius: '10px',
+                                                    color: '#fff',
+                                                    fontSize: '14px',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                    transition: 'transform 0.2s, opacity 0.2s'
+                                                }}
+                                                onMouseOver={(e) => {
+                                                    e.target.style.transform = 'scale(1.02)';
+                                                    e.target.style.opacity = '0.9';
+                                                }}
+                                                onMouseOut={(e) => {
+                                                    e.target.style.transform = 'scale(1)';
+                                                    e.target.style.opacity = '1';
+                                                }}
+                                            >
+                                                Contact Sales
+                                            </button>
+                                            <button
+                                                onClick={() => window.open('mailto:demo@moonreelz.com?subject=Book a Demo - MoonReelz ' + plan.name, '_blank')}
+                                                style={{
+                                                    padding: '10px 16px',
+                                                    background: 'transparent',
+                                                    border: '1px solid ' + plan.color,
+                                                    borderRadius: '10px',
+                                                    color: plan.color,
+                                                    fontSize: '14px',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                    transition: 'transform 0.2s, background 0.2s'
+                                                }}
+                                                onMouseOver={(e) => {
+                                                    e.target.style.transform = 'scale(1.02)';
+                                                    e.target.style.background = 'rgba(255,255,255,0.1)';
+                                                }}
+                                                onMouseOut={(e) => {
+                                                    e.target.style.transform = 'scale(1)';
+                                                    e.target.style.background = 'transparent';
+                                                }}
+                                            >
+                                                Book a Demo
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
+                            {selectedPlan && selectedPlan !== currentPlan && (
+                                <button
+                                    onClick={() => handleSelectPlan(selectedPlan)}
+                                    style={{
+                                        padding: '12px 28px',
+                                        background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        color: '#fff',
+                                        fontSize: '15px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        transition: 'transform 0.2s, box-shadow 0.2s'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        e.target.style.transform = 'scale(1.02)';
+                                        e.target.style.boxShadow = '0 10px 40px rgba(139,92,246,0.4)';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.transform = 'scale(1)';
+                                        e.target.style.boxShadow = 'none';
+                                    }}
+                                >
+                                    {selectedPlan === PLANS.FREE ? 'Downgrade to Free' : `Upgrade to ${selectedPlan === PLANS.PRO ? 'Pro' : 'Power User'}`}
+                                </button>
+                            )}
+                            <button
+                                onClick={onClose}
+                                style={{
+                                    padding: '12px 28px',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    borderRadius: '12px',
+                                    color: '#fff',
+                                    fontSize: '15px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {currentPlan === PLANS.FREE ? 'Maybe Later' : 'Close'}
+                            </button>
+                        </div>
+
+                        {/* Footer note */}
+                        <p style={{
+                            color: 'rgba(255,255,255,0.4)',
+                            fontSize: '12px',
+                            marginTop: '20px'
+                        }}>
+                            {currentPlan === PLANS.FREE
+                                ? 'Free users get 6 reels per day. Resets at midnight.'
+                                : 'Thank you for supporting MoonReelz!'}
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==================== STATUS BAR COMPONENT ====================
+        const StatusBar = ({ plan, viewsRemaining, onUpgradeClick }) => {
+            const isPro = plan === PLANS.PRO;
+            const isPower = plan === PLANS.POWER;
+            const isPaid = isPro || isPower;
+
+            return (
+                <div
+                    onClick={onUpgradeClick}
+                    style={{
+                        position: 'fixed',
+                        top: '16px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: isPaid
+                            ? 'linear-gradient(135deg, rgba(139,92,246,0.9), rgba(236,72,153,0.9))'
+                            : 'rgba(0,0,0,0.7)',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        zIndex: 100,
+                        backdropFilter: 'blur(10px)',
+                        border: isPaid ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)';
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
+                    }}
+                >
+                    {isPower ? (
+                        <>
+                            <Icons.Crown />
+                            <span style={{ fontWeight: '600', fontSize: '14px' }}>Power User</span>
+                        </>
+                    ) : isPro ? (
+                        <>
+                            <Icons.Crown />
+                            <span style={{ fontWeight: '600', fontSize: '14px' }}>Pro</span>
+                        </>
+                    ) : (
+                        <>
+                            <span style={{ fontSize: '14px' }}>FREE reels today:</span>
+                            <span style={{
+                                fontWeight: '700',
+                                color: viewsRemaining > 2 ? '#10B981' : viewsRemaining > 0 ? '#F59E0B' : '#EF4444'
+                            }}>{viewsRemaining}/{FREE_DAILY_LIMIT}</span>
+                            <span style={{
+                                fontSize: '11px',
+                                color: 'rgba(255,255,255,0.5)',
+                                marginLeft: '4px'
+                            }}>• Tap to upgrade</span>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        // ==================== NEXT VIDEO PREVIEW ====================
+        const NextVideoPreview = ({ video, onClick }) => {
+            if (!video) return null;
+
+            return (
+                <div
+                    onClick={onClick}
+                    style={{
+                        position: 'absolute',
+                        bottom: '85px',
+                        right: '16px',
+                        background: 'rgba(0,0,0,0.85)',
+                        backdropFilter: 'blur(10px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        zIndex: 24,
+                        borderRadius: '10px',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        gap: '10px',
+                        maxWidth: '200px',
+                        animation: 'fadeIn 0.3s ease-out'
+                    }}
+                >
+                    {/* Small thumbnail */}
+                    <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                    }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                            <polygon points="5,3 19,12 5,21" />
+                        </svg>
+                    </div>
+
+                    {/* Video info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                            fontSize: '9px',
+                            color: '#8B5CF6',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}>
+                            Up Next
+                        </div>
+                        <div style={{
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            color: '#fff',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            marginTop: '2px'
+                        }}>
+                            {video.title}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==================== MAIN FEED COMPONENT ====================
+        const VideoFeed = ({ videos, accessControl }) => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [maxWatchedIndex, setMaxWatchedIndex] = useState(0); // Track furthest video watched
+            const [isMuted, setIsMuted] = useState(true);
+            const [timeRemaining, setTimeRemaining] = useState(null); // Track time remaining in current video
+            const containerRef = useRef(null);
+            const [touchStart, setTouchStart] = useState(null);
+            const [touchEnd, setTouchEnd] = useState(null);
+            const isScrollingRef = useRef(false); // Debounce scroll using ref
+            const scrollTimeoutRef = useRef(null);
+            const lastScrollTime = useRef(0); // Track last scroll time
+
+            const minSwipeDistance = 50;
+            const SCROLL_COOLDOWN = 800; // Minimum time between scroll navigations (ms)
+            const hasRecordedFirstView = useRef(false);
+
+            // Record view for the first video on mount (but don't show modal on initial load)
+            useEffect(() => {
+                if (videos.length > 0 && !hasRecordedFirstView.current) {
+                    hasRecordedFirstView.current = true;
+                    // Only record if user can watch, otherwise just let them view video 1
+                    if (accessControl.canWatch) {
+                        accessControl.recordView();
+                    }
+                }
+            }, [videos.length, accessControl]);
+
+            // Reset time remaining when video changes
+            useEffect(() => {
+                setTimeRemaining(null);
+            }, [currentIndex]);
+
+            const goToNext = useCallback(() => {
+                if (currentIndex < videos.length - 1) {
+                    const nextIndex = currentIndex + 1;
+
+                    // If going to a video we've already watched, no need to record view
+                    if (nextIndex <= maxWatchedIndex) {
+                        setCurrentIndex(nextIndex);
+                        return;
+                    }
+
+                    // Going to a new video - try to record the view
+                    if (accessControl.recordView()) {
+                        setCurrentIndex(nextIndex);
+                        setMaxWatchedIndex(nextIndex);
+                    }
+                }
+            }, [currentIndex, videos.length, accessControl, maxWatchedIndex]);
+
+            const goToPrev = useCallback(() => {
+                // Always allow going back to previously watched videos
+                if (currentIndex > 0) {
+                    setCurrentIndex(prev => prev - 1);
+                }
+            }, [currentIndex]);
+
+            const onTouchStart = (e) => {
+                setTouchEnd(null);
+                setTouchStart(e.targetTouches[0].clientY);
+            };
+
+            const onTouchMove = (e) => {
+                setTouchEnd(e.targetTouches[0].clientY);
+            };
+
+            const onTouchEnd = () => {
+                if (!touchStart || !touchEnd) return;
+                const distance = touchStart - touchEnd;
+                const isUpSwipe = distance > minSwipeDistance;
+                const isDownSwipe = distance < -minSwipeDistance;
+
+                if (isUpSwipe) goToNext();
+                if (isDownSwipe) goToPrev();
+            };
+
+            // Simple wheel handler with time-based cooldown to prevent skipping videos
+            const handleWheel = useCallback((e) => {
+                e.preventDefault();
+
+                const now = Date.now();
+
+                // Enforce cooldown between navigations
+                if (now - lastScrollTime.current < SCROLL_COOLDOWN) {
+                    return;
+                }
+
+                // Ignore very small scroll movements
+                if (Math.abs(e.deltaY) < 5) return;
+
+                // Update last scroll time and navigate
+                lastScrollTime.current = now;
+
+                if (e.deltaY > 0) {
+                    goToNext();
+                } else if (e.deltaY < 0) {
+                    goToPrev();
+                }
+            }, [goToNext, goToPrev]);
+
+            const handleKeyDown = useCallback((e) => {
+                if (e.key === 'ArrowDown' || e.key === ' ') {
+                    e.preventDefault();
+                    goToNext();
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    goToPrev();
+                }
+                // Volume controls - M to toggle mute, or volume up/down keys
+                if (e.key === 'm' || e.key === 'M') {
+                    e.preventDefault();
+                    setIsMuted(prev => !prev);
+                }
+                // Arrow right/left to unmute (any volume adjustment unmutes)
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    if (isMuted) {
+                        setIsMuted(false);
+                    }
+                }
+            }, [goToNext, goToPrev, isMuted]);
+
+            useEffect(() => {
+                const container = containerRef.current;
+                if (container) {
+                    container.addEventListener('wheel', handleWheel, { passive: false });
+                }
+                window.addEventListener('keydown', handleKeyDown);
+                return () => {
+                    if (container) {
+                        container.removeEventListener('wheel', handleWheel);
+                    }
+                    window.removeEventListener('keydown', handleKeyDown);
+                    if (scrollTimeoutRef.current) {
+                        clearTimeout(scrollTimeoutRef.current);
+                    }
+                };
+            }, [handleWheel, handleKeyDown]);
+
+            if (videos.length === 0) {
+                return (
+                    <div style={{
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '40px',
+                        textAlign: 'center'
+                    }}>
+                        <Icons.Moon />
+                        <h2 style={{ marginTop: '20px', marginBottom: '12px' }}>No Reels Yet</h2>
+                        <p style={{ color: 'rgba(255,255,255,0.6)' }}>
+                            Check back soon for business stories and insights!
+                        </p>
+                    </div>
+                );
+            }
+
+            const nextVideo = currentIndex < videos.length - 1 ? videos[currentIndex + 1] : null;
+
+            return (
+                <div
+                    ref={containerRef}
+                    style={{
+                        height: '100%',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0a0a0f 100%)',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                >
+                    {/* Decorative background elements */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '10%',
+                        left: '5%',
+                        width: '300px',
+                        height: '300px',
+                        background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)',
+                        borderRadius: '50%',
+                        filter: 'blur(60px)',
+                        pointerEvents: 'none'
+                    }} />
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '10%',
+                        right: '5%',
+                        width: '300px',
+                        height: '300px',
+                        background: 'radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%)',
+                        borderRadius: '50%',
+                        filter: 'blur(60px)',
+                        pointerEvents: 'none'
+                    }} />
+
+                    <StatusBar
+                        plan={accessControl.plan}
+                        viewsRemaining={accessControl.viewsRemaining}
+                        onUpgradeClick={accessControl.openUpgradeModal}
+                    />
+
+                    {/* Phone-style video container */}
+                    <div style={{
+                        width: '100%',
+                        maxWidth: '400px',
+                        height: '85vh',
+                        maxHeight: '750px',
+                        position: 'relative',
+                        borderRadius: '24px',
+                        overflow: 'hidden',
+                        boxShadow: '0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)',
+                        background: '#000'
+                    }}>
+                        {/* Video content area */}
+                        <div style={{
+                            position: 'relative',
+                            width: '100%',
+                            height: '100%',
+                            overflow: 'hidden'
+                        }}>
+                            {videos.map((video, index) => (
+                                <div
+                                    key={video.id}
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        transform: `translateY(${(index - currentIndex) * 100}%)`,
+                                        transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                                    }}
+                                >
+                                    <VideoPlayer
+                                        video={video}
+                                        isActive={index === currentIndex && (accessControl.canWatch || index <= maxWatchedIndex) && !accessControl.showUpgradeModal}
+                                        onVideoEnd={goToNext}
+                                        isMuted={isMuted}
+                                        onToggleMute={() => setIsMuted(!isMuted)}
+                                        onTimeUpdate={index === currentIndex ? (remaining) => setTimeRemaining(remaining) : undefined}
+                                    />
+                                </div>
+                            ))}
+
+                            {/* Next video preview - show only in last 20 seconds if user can watch or if next video was already watched */}
+                            {nextVideo && timeRemaining !== null && timeRemaining < 20 && (accessControl.canWatch || currentIndex + 1 <= maxWatchedIndex) && (
+                                <NextVideoPreview video={nextVideo} onClick={goToNext} />
+                            )}
+                        </div>
+
+                        {/* Navigation Hints - Previous */}
+                        {currentIndex > 0 && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '70px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                opacity: 0.6,
+                                animation: 'pulse 2s infinite',
+                                zIndex: 30
+                            }}>
+                                <Icons.ChevronUp />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Video counter */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '20px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex',
+                        gap: '6px',
+                        alignItems: 'center'
+                    }}>
+                        {videos.map((_, index) => (
+                            <div
+                                key={index}
+                                style={{
+                                    width: index === currentIndex ? '24px' : '8px',
+                                    height: '8px',
+                                    borderRadius: '4px',
+                                    background: index === currentIndex
+                                        ? 'linear-gradient(135deg, #8B5CF6, #EC4899)'
+                                        : 'rgba(255,255,255,0.3)',
+                                    transition: 'all 0.3s ease'
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Keyboard hint */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '50px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex',
+                        gap: '8px',
+                        alignItems: 'center',
+                        color: 'rgba(255,255,255,0.4)',
+                        fontSize: '12px'
+                    }}>
+                        <span style={{
+                            padding: '4px 8px',
+                            background: 'rgba(255,255,255,0.1)',
+                            borderRadius: '4px',
+                            fontFamily: 'monospace'
+                        }}>↑</span>
+                        <span style={{
+                            padding: '4px 8px',
+                            background: 'rgba(255,255,255,0.1)',
+                            borderRadius: '4px',
+                            fontFamily: 'monospace'
+                        }}>↓</span>
+                        <span>or scroll to navigate</span>
+                    </div>
+
+                    <UpgradeModal
+                        isOpen={accessControl.showUpgradeModal}
+                        onClose={accessControl.closeUpgradeModal}
+                        onSelectPlan={accessControl.upgradeToPlan}
+                        currentPlan={accessControl.plan}
+                    />
+                </div>
+            );
+        };
+
+        // ==================== ADMIN PANEL COMPONENT ====================
+        const AdminPanel = ({ videos, setVideos, accessControl, onClose }) => {
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [editingVideo, setEditingVideo] = useState(null);
+            const [newVideo, setNewVideo] = useState({
+                title: '',
+                description: '',
+                url: '',
+                category: 'Business',
+                duration: ''
+            });
+            const [isDragging, setIsDragging] = useState(false);
+            const [uploadProgress, setUploadProgress] = useState(null);
+            const [uploadMode, setUploadMode] = useState('url'); // 'url' or 'file'
+            const [droppedFile, setDroppedFile] = useState(null);
+            const fileInputRef = useRef(null);
+            const [draggedIndex, setDraggedIndex] = useState(null);
+            const [dragOverIndex, setDragOverIndex] = useState(null);
+
+            // Helper to save videos to storage (excludes blob URLs and broken flag)
+            const saveVideosToStorage = (videosToSave) => {
+                const cleanVideos = videosToSave.map(v => ({
+                    id: v.id,
+                    title: v.title,
+                    description: v.description,
+                    url: v.isLocal ? '' : v.url,
+                    thumbnail: v.thumbnail || '',
+                    category: v.category,
+                    duration: v.duration,
+                    isLocal: v.isLocal || false,
+                    fileSize: v.fileSize || 0
+                }));
+                setStorageItem(STORAGE_KEYS.VIDEOS, cleanVideos);
+            };
+
+            // Move video up in the list
+            const moveVideoUp = (index) => {
+                if (index <= 0) return;
+                const newVideos = [...videos];
+                [newVideos[index - 1], newVideos[index]] = [newVideos[index], newVideos[index - 1]];
+                setVideos(newVideos);
+                saveVideosToStorage(newVideos);
+            };
+
+            // Move video down in the list
+            const moveVideoDown = (index) => {
+                if (index >= videos.length - 1) return;
+                const newVideos = [...videos];
+                [newVideos[index], newVideos[index + 1]] = [newVideos[index + 1], newVideos[index]];
+                setVideos(newVideos);
+                saveVideosToStorage(newVideos);
+            };
+
+            // Handle drag start for reordering
+            const handleVideoDragStart = (e, index) => {
+                setDraggedIndex(index);
+                e.dataTransfer.effectAllowed = 'move';
+            };
+
+            // Handle drag over for reordering
+            const handleVideoDragOver = (e, index) => {
+                e.preventDefault();
+                if (draggedIndex === null) return;
+                setDragOverIndex(index);
+            };
+
+            // Handle drop for reordering
+            const handleVideoDrop = (e, dropIndex) => {
+                e.preventDefault();
+                if (draggedIndex === null || draggedIndex === dropIndex) {
+                    setDraggedIndex(null);
+                    setDragOverIndex(null);
+                    return;
+                }
+
+                const newVideos = [...videos];
+                const [draggedVideo] = newVideos.splice(draggedIndex, 1);
+                newVideos.splice(dropIndex, 0, draggedVideo);
+
+                setVideos(newVideos);
+                saveVideosToStorage(newVideos);
+                setDraggedIndex(null);
+                setDragOverIndex(null);
+            };
+
+            const handleVideoDragEnd = () => {
+                setDraggedIndex(null);
+                setDragOverIndex(null);
+            };
+
+            useEffect(() => {
+                const auth = getStorageItem(STORAGE_KEYS.ADMIN_AUTH, false);
+                setIsAuthenticated(auth);
+            }, []);
+
+            // Load blob URLs for local videos on mount
+            useEffect(() => {
+                const loadLocalVideos = async () => {
+                    const updatedVideos = await Promise.all(
+                        videos.map(async (video) => {
+                            if (video.isLocal && !video.url.startsWith('blob:')) {
+                                try {
+                                    const stored = await getVideoFromDB(video.id);
+                                    if (stored && stored.file) {
+                                        return { ...video, url: URL.createObjectURL(stored.file) };
+                                    }
+                                } catch (e) {
+                                    console.error('Failed to load local video:', e);
+                                }
+                            }
+                            return video;
+                        })
+                    );
+                    if (JSON.stringify(updatedVideos) !== JSON.stringify(videos)) {
+                        setVideos(updatedVideos);
+                    }
+                };
+                loadLocalVideos();
+            }, []);
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (password === ADMIN_PASSWORD) {
+                    setIsAuthenticated(true);
+                    setStorageItem(STORAGE_KEYS.ADMIN_AUTH, true);
+                    setError('');
+                } else {
+                    setError('Invalid password');
+                }
+            };
+
+            const handleLogout = () => {
+                setIsAuthenticated(false);
+                setStorageItem(STORAGE_KEYS.ADMIN_AUTH, false);
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                setIsDragging(true);
+            };
+
+            const handleDragLeave = (e) => {
+                e.preventDefault();
+                setIsDragging(false);
+            };
+
+            const handleDrop = async (e) => {
+                e.preventDefault();
+                setIsDragging(false);
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('video/')) {
+                        setDroppedFile(file);
+                        setUploadMode('file');
+                        // Auto-fill title from filename
+                        const fileName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                        setNewVideo(prev => ({
+                            ...prev,
+                            title: prev.title || fileName,
+                            url: ''
+                        }));
+                    } else {
+                        setError('Please drop a video file (MP4, WebM, etc.)');
+                    }
+                }
+            };
+
+            const handleFileSelect = (e) => {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith('video/')) {
+                    setDroppedFile(file);
+                    setUploadMode('file');
+                    const fileName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                    setNewVideo(prev => ({
+                        ...prev,
+                        title: prev.title || fileName,
+                        url: ''
+                    }));
+                }
+            };
+
+            const handleAddVideo = async (e) => {
+                e.preventDefault();
+
+                if (uploadMode === 'file' && droppedFile) {
+                    if (!newVideo.title) {
+                        setError('Title is required');
+                        return;
+                    }
+
+                    setUploadProgress('Saving video...');
+
+                    try {
+                        const videoId = Date.now().toString();
+
+                        // Save to IndexedDB
+                        await saveVideoToDB(videoId, droppedFile);
+
+                        // Create blob URL for immediate playback
+                        const blobUrl = URL.createObjectURL(droppedFile);
+
+                        const video = {
+                            id: videoId,
+                            title: newVideo.title,
+                            description: newVideo.description,
+                            url: blobUrl,
+                            category: newVideo.category,
+                            duration: newVideo.duration,
+                            isLocal: true,
+                            fileSize: droppedFile.size,
+                            fileName: droppedFile.name
+                        };
+
+                        const updatedVideos = [...videos, video];
+                        setVideos(updatedVideos);
+
+                        // Save to localStorage WITHOUT blob URL (it will be recreated from IndexedDB on load)
+                        saveVideosToStorage(updatedVideos);
+
+                        // Reset form
+                        setNewVideo({
+                            title: '',
+                            description: '',
+                            url: '',
+                            category: 'Business',
+                            duration: ''
+                        });
+                        setDroppedFile(null);
+                        setUploadMode('url');
+                        setUploadProgress(null);
+                        setError('');
+                    } catch (err) {
+                        setError('Failed to save video: ' + err.message);
+                        setUploadProgress(null);
+                    }
+                } else {
+                    // URL mode
+                    if (!newVideo.title || !newVideo.url) {
+                        setError('Title and URL are required');
+                        return;
+                    }
+
+                    const video = {
+                        ...newVideo,
+                        id: Date.now().toString(),
+                        isLocal: false
+                    };
+
+                    const updatedVideos = [...videos, video];
+                    setVideos(updatedVideos);
+                    saveVideosToStorage(updatedVideos);
+                    setNewVideo({
+                        title: '',
+                        description: '',
+                        url: '',
+                        category: 'Business',
+                        duration: ''
+                    });
+                    setError('');
+                }
+            };
+
+            const handleDeleteVideo = async (id) => {
+                const video = videos.find(v => v.id === id);
+                if (video?.isLocal) {
+                    try {
+                        await deleteVideoFromDB(id);
+                        if (video.url.startsWith('blob:')) {
+                            URL.revokeObjectURL(video.url);
+                        }
+                    } catch (e) {
+                        console.error('Failed to delete from IndexedDB:', e);
+                    }
+                }
+                const updatedVideos = videos.filter(v => v.id !== id);
+                setVideos(updatedVideos);
+                saveVideosToStorage(updatedVideos);
+            };
+
+            const handleUpdateVideo = (e) => {
+                e.preventDefault();
+                const updatedVideos = videos.map(v =>
+                    v.id === editingVideo.id ? editingVideo : v
+                );
+                setVideos(updatedVideos);
+                saveVideosToStorage(updatedVideos);
+                setEditingVideo(null);
+            };
+
+            const clearDroppedFile = () => {
+                setDroppedFile(null);
+                setUploadMode('url');
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            };
+
+            const inputStyle = {
+                width: '100%',
+                padding: '12px 16px',
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '16px',
+                outline: 'none',
+                marginBottom: '12px'
+            };
+
+            const buttonStyle = {
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer'
+            };
+
+            if (!isAuthenticated) {
+                return (
+                    <div style={{
+                        minHeight: '100vh',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)',
+                        padding: '20px'
+                    }}>
+                        <div style={{
+                            maxWidth: '400px',
+                            width: '100%',
+                            background: 'rgba(255,255,255,0.05)',
+                            borderRadius: '16px',
+                            padding: '32px',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                marginBottom: '24px'
+                            }}>
+                                <Icons.Moon />
+                                <h1 style={{ fontSize: '24px', fontWeight: '700' }}>Admin Login</h1>
+                            </div>
+
+                            <form onSubmit={handleLogin}>
+                                <input
+                                    type="password"
+                                    placeholder="Enter admin password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    style={inputStyle}
+                                />
+                                {error && (
+                                    <p style={{ color: '#EF4444', marginBottom: '12px', fontSize: '14px' }}>
+                                        {error}
+                                    </p>
+                                )}
+                                <button type="submit" style={{ ...buttonStyle, width: '100%' }}>
+                                    Login
+                                </button>
+                            </form>
+
+                            <button
+                                onClick={onClose}
+                                style={{
+                                    marginTop: '16px',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'rgba(255,255,255,0.6)',
+                                    cursor: 'pointer',
+                                    width: '100%',
+                                    textAlign: 'center'
+                                }}
+                            >
+                                ← Back to MoonReelz
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div style={{
+                    minHeight: '100vh',
+                    background: 'linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)',
+                    padding: '20px'
+                }}>
+                    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                        {/* Header */}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '32px',
+                            flexWrap: 'wrap',
+                            gap: '16px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <Icons.Moon />
+                                <h1 style={{ fontSize: '24px', fontWeight: '700' }}>MoonReelz Admin</h1>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button
+                                    onClick={onClose}
+                                    style={{
+                                        padding: '10px 20px',
+                                        background: 'rgba(255,255,255,0.1)',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}
+                                >
+                                    <Icons.ArrowLeft />
+                                    Back to App
+                                </button>
+                                <button
+                                    onClick={handleLogout}
+                                    style={{
+                                        padding: '10px 20px',
+                                        background: 'rgba(239,68,68,0.2)',
+                                        border: '1px solid rgba(239,68,68,0.3)',
+                                        borderRadius: '8px',
+                                        color: '#EF4444',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Logout
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        accessControl.resetDailyViews();
+                                        alert('Daily view count reset to 0!');
+                                    }}
+                                    style={{
+                                        padding: '10px 20px',
+                                        background: 'rgba(34,197,94,0.2)',
+                                        border: '1px solid rgba(34,197,94,0.3)',
+                                        borderRadius: '8px',
+                                        color: '#22c55e',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Reset Daily Views
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+                            gap: '24px'
+                        }}>
+                            {/* Add Video Form */}
+                            <div style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                border: '1px solid rgba(255,255,255,0.1)'
+                            }}>
+                                <h2 style={{
+                                    fontSize: '20px',
+                                    fontWeight: '600',
+                                    marginBottom: '20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                }}>
+                                    <Icons.Plus />
+                                    Add New Video
+                                </h2>
+
+                                {/* Drag & Drop Zone */}
+                                <div
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    onClick={() => !droppedFile && fileInputRef.current?.click()}
+                                    style={{
+                                        border: `2px dashed ${isDragging ? '#8B5CF6' : droppedFile ? '#10B981' : 'rgba(255,255,255,0.2)'}`,
+                                        borderRadius: '12px',
+                                        padding: '24px',
+                                        textAlign: 'center',
+                                        marginBottom: '16px',
+                                        background: isDragging ? 'rgba(139,92,246,0.1)' : droppedFile ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.02)',
+                                        cursor: droppedFile ? 'default' : 'pointer',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                >
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="video/*"
+                                        onChange={handleFileSelect}
+                                        style={{ display: 'none' }}
+                                    />
+
+                                    {droppedFile ? (
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <Icons.CheckCircle />
+                                                <span style={{ color: '#10B981', fontWeight: '600' }}>Video Ready</span>
+                                            </div>
+                                            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', marginBottom: '4px' }}>
+                                                {droppedFile.name}
+                                            </p>
+                                            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: '12px' }}>
+                                                {formatFileSize(droppedFile.size)}
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); clearDroppedFile(); }}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    background: 'rgba(239,68,68,0.2)',
+                                                    border: '1px solid rgba(239,68,68,0.3)',
+                                                    borderRadius: '6px',
+                                                    color: '#EF4444',
+                                                    fontSize: '12px',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Remove & Use URL Instead
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <div style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
+                                                <Icons.Upload />
+                                            </div>
+                                            <p style={{ color: 'rgba(255,255,255,0.8)', fontWeight: '500', marginBottom: '4px' }}>
+                                                {isDragging ? 'Drop your video here!' : 'Drag & drop a video file'}
+                                            </p>
+                                            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
+                                                or click to browse • MP4, WebM supported
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* OR Divider */}
+                                {!droppedFile && (
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        marginBottom: '16px'
+                                    }}>
+                                        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+                                        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>OR PASTE URL</span>
+                                        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleAddVideo}>
+                                    <input
+                                        type="text"
+                                        placeholder="Video Title *"
+                                        value={newVideo.title}
+                                        onChange={(e) => setNewVideo({...newVideo, title: e.target.value})}
+                                        style={inputStyle}
+                                    />
+
+                                    {/* Only show URL input if no file is dropped */}
+                                    {!droppedFile && (
+                                        <input
+                                            type="url"
+                                            placeholder="Video URL (from Veo 3.1 or cloud storage)"
+                                            value={newVideo.url}
+                                            onChange={(e) => setNewVideo({...newVideo, url: e.target.value})}
+                                            style={inputStyle}
+                                        />
+                                    )}
+
+                                    <textarea
+                                        placeholder="Description"
+                                        value={newVideo.description}
+                                        onChange={(e) => setNewVideo({...newVideo, description: e.target.value})}
+                                        style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+                                    />
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                        <select
+                                            value={newVideo.category}
+                                            onChange={(e) => setNewVideo({...newVideo, category: e.target.value})}
+                                            style={inputStyle}
+                                        >
+                                            <option value="Business">Business</option>
+                                            <option value="Finance">Finance</option>
+                                            <option value="Entrepreneurship">Entrepreneurship</option>
+                                            <option value="Leadership">Leadership</option>
+                                            <option value="Marketing">Marketing</option>
+                                            <option value="Strategy">Strategy</option>
+                                            <option value="Mindset">Mindset</option>
+                                            <option value="Skills">Skills</option>
+                                        </select>
+                                        <input
+                                            type="text"
+                                            placeholder="Duration (e.g., 2:30)"
+                                            value={newVideo.duration}
+                                            onChange={(e) => setNewVideo({...newVideo, duration: e.target.value})}
+                                            style={inputStyle}
+                                        />
+                                    </div>
+                                    {error && (
+                                        <p style={{ color: '#EF4444', marginBottom: '12px', fontSize: '14px' }}>
+                                            {error}
+                                        </p>
+                                    )}
+                                    {uploadProgress && (
+                                        <p style={{ color: '#8B5CF6', marginBottom: '12px', fontSize: '14px' }}>
+                                            {uploadProgress}
+                                        </p>
+                                    )}
+                                    <button type="submit" style={{ ...buttonStyle, width: '100%' }} disabled={!!uploadProgress}>
+                                        {droppedFile ? 'Upload & Add Video' : 'Add Video'}
+                                    </button>
+                                </form>
+                            </div>
+
+                            {/* Video Library */}
+                            <div style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                border: '1px solid rgba(255,255,255,0.1)'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                    marginBottom: '20px'
+                                }}>
+                                    <div>
+                                        <h2 style={{
+                                            fontSize: '20px',
+                                            fontWeight: '600',
+                                            marginBottom: '4px'
+                                        }}>
+                                            Video Library ({videos.length})
+                                        </h2>
+                                        <p style={{
+                                            fontSize: '13px',
+                                            color: 'rgba(255,255,255,0.5)'
+                                        }}>
+                                            Drag videos or use arrows to reorder. Top 6 videos play first.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div style={{
+                                    maxHeight: '500px',
+                                    overflowY: 'auto',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '8px'
+                                }}>
+                                    {videos.map((video, index) => (
+                                        <div
+                                            key={video.id}
+                                            draggable
+                                            onDragStart={(e) => handleVideoDragStart(e, index)}
+                                            onDragOver={(e) => handleVideoDragOver(e, index)}
+                                            onDrop={(e) => handleVideoDrop(e, index)}
+                                            onDragEnd={handleVideoDragEnd}
+                                            style={{
+                                                background: dragOverIndex === index
+                                                    ? 'rgba(139,92,246,0.2)'
+                                                    : index < 6
+                                                        ? 'rgba(139,92,246,0.1)'
+                                                        : 'rgba(255,255,255,0.05)',
+                                                borderRadius: '12px',
+                                                padding: '12px 16px',
+                                                border: dragOverIndex === index
+                                                    ? '2px dashed #8B5CF6'
+                                                    : index < 6
+                                                        ? '1px solid rgba(139,92,246,0.3)'
+                                                        : '1px solid rgba(255,255,255,0.1)',
+                                                opacity: draggedIndex === index ? 0.5 : 1,
+                                                cursor: 'grab',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            {/* Position number and drag handle */}
+                                            <div style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                minWidth: '40px'
+                                            }}>
+                                                <span style={{
+                                                    fontSize: '16px',
+                                                    fontWeight: '700',
+                                                    color: index < 6 ? '#8B5CF6' : 'rgba(255,255,255,0.4)',
+                                                    width: '28px',
+                                                    height: '28px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    background: index < 6 ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.1)',
+                                                    borderRadius: '8px'
+                                                }}>
+                                                    {index + 1}
+                                                </span>
+                                                <Icons.GripVertical />
+                                            </div>
+
+                                            {/* Move buttons */}
+                                            <div style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '2px'
+                                            }}>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); moveVideoUp(index); }}
+                                                    disabled={index === 0}
+                                                    style={{
+                                                        background: 'rgba(255,255,255,0.1)',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        padding: '2px',
+                                                        cursor: index === 0 ? 'not-allowed' : 'pointer',
+                                                        opacity: index === 0 ? 0.3 : 1,
+                                                        color: '#fff',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    <Icons.ChevronUpSmall />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); moveVideoDown(index); }}
+                                                    disabled={index === videos.length - 1}
+                                                    style={{
+                                                        background: 'rgba(255,255,255,0.1)',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        padding: '2px',
+                                                        cursor: index === videos.length - 1 ? 'not-allowed' : 'pointer',
+                                                        opacity: index === videos.length - 1 ? 0.3 : 1,
+                                                        color: '#fff',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    <Icons.ChevronDownSmall />
+                                                </button>
+                                            </div>
+
+                                            {/* Video content */}
+                                            <div style={{ flex: 1 }}>
+                                            {editingVideo?.id === video.id ? (
+                                                <form onSubmit={handleUpdateVideo}>
+                                                    <input
+                                                        type="text"
+                                                        value={editingVideo.title}
+                                                        onChange={(e) => setEditingVideo({...editingVideo, title: e.target.value})}
+                                                        style={{ ...inputStyle, marginBottom: '8px' }}
+                                                    />
+                                                    <input
+                                                        type="url"
+                                                        value={editingVideo.url}
+                                                        onChange={(e) => setEditingVideo({...editingVideo, url: e.target.value})}
+                                                        style={{ ...inputStyle, marginBottom: '8px' }}
+                                                    />
+                                                    <textarea
+                                                        value={editingVideo.description}
+                                                        onChange={(e) => setEditingVideo({...editingVideo, description: e.target.value})}
+                                                        style={{ ...inputStyle, minHeight: '60px', marginBottom: '8px' }}
+                                                    />
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button type="submit" style={{ ...buttonStyle, padding: '8px 16px', fontSize: '14px' }}>
+                                                            Save
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEditingVideo(null)}
+                                                            style={{
+                                                                padding: '8px 16px',
+                                                                background: 'rgba(255,255,255,0.1)',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                color: '#fff',
+                                                                cursor: 'pointer',
+                                                                fontSize: '14px'
+                                                            }}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            ) : (
+                                                <>
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'flex-start',
+                                                        gap: '12px'
+                                                    }}>
+                                                        <div>
+                                                            <h3 style={{ fontWeight: '600', marginBottom: '4px' }}>
+                                                                {video.title}
+                                                            </h3>
+                                                            <p style={{
+                                                                fontSize: '13px',
+                                                                color: 'rgba(255,255,255,0.6)',
+                                                                marginBottom: '8px'
+                                                            }}>
+                                                                {video.description?.substring(0, 80)}...
+                                                            </p>
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                gap: '8px',
+                                                                fontSize: '12px',
+                                                                flexWrap: 'wrap'
+                                                            }}>
+                                                                <span style={{
+                                                                    background: 'rgba(139,92,246,0.2)',
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: '4px',
+                                                                    color: '#8B5CF6'
+                                                                }}>
+                                                                    {video.category}
+                                                                </span>
+                                                                {video.isLocal ? (
+                                                                    <span style={{
+                                                                        background: 'rgba(16,185,129,0.2)',
+                                                                        padding: '2px 8px',
+                                                                        borderRadius: '4px',
+                                                                        color: '#10B981',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '4px'
+                                                                    }}>
+                                                                        <Icons.Film /> Local • {formatFileSize(video.fileSize || 0)}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span style={{
+                                                                        background: 'rgba(59,130,246,0.2)',
+                                                                        padding: '2px 8px',
+                                                                        borderRadius: '4px',
+                                                                        color: '#3B82F6'
+                                                                    }}>
+                                                                        URL
+                                                                    </span>
+                                                                )}
+                                                                <span style={{ color: 'rgba(255,255,255,0.5)' }}>
+                                                                    {video.duration}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                            <button
+                                                                onClick={() => setEditingVideo(video)}
+                                                                style={{
+                                                                    background: 'rgba(255,255,255,0.1)',
+                                                                    border: 'none',
+                                                                    borderRadius: '8px',
+                                                                    padding: '8px',
+                                                                    cursor: 'pointer',
+                                                                    color: '#fff'
+                                                                }}
+                                                            >
+                                                                <Icons.Edit />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteVideo(video.id)}
+                                                                style={{
+                                                                    background: 'rgba(239,68,68,0.1)',
+                                                                    border: 'none',
+                                                                    borderRadius: '8px',
+                                                                    padding: '8px',
+                                                                    cursor: 'pointer',
+                                                                    color: '#EF4444'
+                                                                }}
+                                                            >
+                                                                <Icons.Trash />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {videos.length === 0 && (
+                                        <p style={{
+                                            textAlign: 'center',
+                                            color: 'rgba(255,255,255,0.5)',
+                                            padding: '40px'
+                                        }}>
+                                            No videos yet. Add your first video above!
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Instructions */}
+                        <div style={{
+                            marginTop: '24px',
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                            gap: '16px'
+                        }}>
+                            <div style={{
+                                background: 'rgba(16,185,129,0.1)',
+                                borderRadius: '12px',
+                                padding: '20px',
+                                border: '1px solid rgba(16,185,129,0.2)'
+                            }}>
+                                <h3 style={{ fontWeight: '600', marginBottom: '12px', color: '#10B981' }}>
+                                    🎬 Method 1: Drag & Drop (Quick Testing)
+                                </h3>
+                                <ol style={{
+                                    color: 'rgba(255,255,255,0.8)',
+                                    lineHeight: '1.8',
+                                    paddingLeft: '20px',
+                                    fontSize: '14px'
+                                }}>
+                                    <li>Generate your video in Veo 3.1</li>
+                                    <li>Download the video to your computer</li>
+                                    <li>Drag & drop it into the upload zone above</li>
+                                    <li>Add title, description & details</li>
+                                    <li>Click "Upload & Add Video"</li>
+                                </ol>
+                                <p style={{ marginTop: '12px', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                                    ⚠️ Local videos are stored in your browser. Clear browser data = videos gone.
+                                </p>
+                            </div>
+
+                            <div style={{
+                                background: 'rgba(59,130,246,0.1)',
+                                borderRadius: '12px',
+                                padding: '20px',
+                                border: '1px solid rgba(59,130,246,0.2)'
+                            }}>
+                                <h3 style={{ fontWeight: '600', marginBottom: '12px', color: '#3B82F6' }}>
+                                    📹 Method 2: Cloud URL (Production)
+                                </h3>
+                                <ol style={{
+                                    color: 'rgba(255,255,255,0.8)',
+                                    lineHeight: '1.8',
+                                    paddingLeft: '20px',
+                                    fontSize: '14px'
+                                }}>
+                                    <li>Generate your video in Veo 3.1</li>
+                                    <li>Upload to cloud storage (Cloudinary, S3, etc.)</li>
+                                    <li>Copy the direct video URL</li>
+                                    <li>Paste URL in the form above</li>
+                                    <li>Add details & click "Add Video"</li>
+                                </ol>
+                                <p style={{ marginTop: '12px', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                                    ✅ Best for production - videos hosted permanently on cloud.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==================== HEADER COMPONENT ====================
+        const Header = ({ onAdminClick, onCategoriesClick }) => {
+            return (
+                <div style={{
+                    position: 'fixed',
+                    top: '16px',
+                    left: '16px',
+                    right: '16px',
+                    zIndex: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    {/* Logo */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: 'rgba(0,0,0,0.5)',
+                        padding: '8px 16px',
+                        borderRadius: '24px',
+                        backdropFilter: 'blur(10px)'
+                    }}>
+                        <Icons.Moon />
+                        <span style={{
+                            fontSize: '18px',
+                            fontWeight: '800',
+                            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                        }}>
+                            MoonReelz
+                        </span>
+                    </div>
+
+                    {/* Tagline - Middle Left */}
+                    <div style={{
+                        position: 'fixed',
+                        top: '50%',
+                        left: '24px',
+                        transform: 'translateY(-50%)',
+                        zIndex: 50,
+                        maxWidth: '280px'
+                    }}>
+                        <h2 style={{
+                            fontFamily: "'Space Grotesk', sans-serif",
+                            fontSize: '22px',
+                            fontWeight: '700',
+                            color: '#fff',
+                            marginBottom: '8px',
+                            lineHeight: '1.2',
+                            textShadow: '0 2px 20px rgba(0,0,0,0.8)'
+                        }}>
+                            Watch the World's Business Models
+                        </h2>
+                        <p style={{
+                            fontFamily: "'Space Grotesk', sans-serif",
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            color: 'rgba(255,255,255,0.75)',
+                            lineHeight: '1.5',
+                            textShadow: '0 2px 20px rgba(0,0,0,0.8)'
+                        }}>
+                            Discover how the most successful companies built their empires. Get inspired. Build yours.
+                        </p>
+                    </div>
+
+                    {/* Categories Button */}
+                    <button
+                        onClick={onCategoriesClick}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'rgba(139,92,246,0.2)',
+                            border: '1px solid rgba(139,92,246,0.4)',
+                            padding: '10px 16px',
+                            borderRadius: '24px',
+                            backdropFilter: 'blur(10px)',
+                            cursor: 'pointer',
+                            color: '#fff',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            transition: 'all 0.2s ease'
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.background = 'rgba(139,92,246,0.4)';
+                            e.currentTarget.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.background = 'rgba(139,92,246,0.2)';
+                            e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                    >
+                        <Icons.Grid />
+                        Categories
+                    </button>
+                </div>
+            );
+        };
+
+        // ==================== CATEGORIES VIEW COMPONENT ====================
+        const CategoriesView = ({ onBack, onSelectCategory }) => {
+            return (
+                <div style={{
+                    height: '100%',
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0a0a0f 100%)',
+                    overflow: 'auto',
+                    padding: '20px'
+                }}>
+                    {/* Header */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '24px',
+                        position: 'sticky',
+                        top: 0,
+                        background: 'linear-gradient(180deg, rgba(10,10,15,1) 0%, rgba(10,10,15,0.95) 80%, rgba(10,10,15,0) 100%)',
+                        paddingBottom: '16px',
+                        zIndex: 10
+                    }}>
+                        <button
+                            onClick={onBack}
+                            style={{
+                                background: 'rgba(255,255,255,0.1)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '10px 16px',
+                                color: '#fff',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            <Icons.ArrowLeft />
+                            Back
+                        </button>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}>
+                            <Icons.Moon />
+                            <span style={{
+                                fontSize: '18px',
+                                fontWeight: '800',
+                                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent'
+                            }}>
+                                MoonReelz
+                            </span>
+                        </div>
+                        <div style={{ width: '80px' }} /> {/* Spacer for centering */}
+                    </div>
+
+                    {/* Title */}
+                    <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                        <h1 style={{
+                            fontSize: '28px',
+                            fontWeight: '800',
+                            marginBottom: '12px',
+                            background: 'linear-gradient(135deg, #fff 0%, #a0a0a0 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                        }}>
+                            Watch the World's Business Models
+                        </h1>
+                        <p style={{
+                            color: 'rgba(255,255,255,0.7)',
+                            fontSize: '16px',
+                            marginBottom: '8px',
+                            maxWidth: '400px',
+                            margin: '0 auto 8px auto'
+                        }}>
+                            Discover how the most successful companies built their empires. Get inspired. Build yours.
+                        </p>
+                        <p style={{
+                            color: 'rgba(255,255,255,0.5)',
+                            fontSize: '14px'
+                        }}>
+                            Explore {CATEGORIES.length} categories
+                        </p>
+                    </div>
+
+                    {/* Categories Grid */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                        gap: '16px',
+                        paddingBottom: '40px'
+                    }}>
+                        {CATEGORIES.map((category) => (
+                            <div
+                                key={category.id}
+                                onClick={() => onSelectCategory(category)}
+                                style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    borderRadius: '16px',
+                                    padding: '20px',
+                                    cursor: 'pointer',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    transition: 'all 0.2s ease',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.borderColor = category.color;
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                                }}
+                            >
+                                {/* Color accent bar */}
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '3px',
+                                    background: category.color
+                                }} />
+
+                                {/* Header row */}
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                    marginBottom: '12px'
+                                }}>
+                                    <h3 style={{
+                                        fontSize: '16px',
+                                        fontWeight: '700',
+                                        color: '#fff',
+                                        margin: 0,
+                                        flex: 1,
+                                        paddingRight: '12px'
+                                    }}>
+                                        {category.name}
+                                    </h3>
+                                    <span style={{
+                                        background: TAG_COLORS[category.tag] || '#8b5cf6',
+                                        color: '#fff',
+                                        fontSize: '10px',
+                                        fontWeight: '600',
+                                        padding: '4px 8px',
+                                        borderRadius: '20px',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        {category.tag}
+                                    </span>
+                                </div>
+
+                                {/* Description */}
+                                <p style={{
+                                    fontSize: '13px',
+                                    color: 'rgba(255,255,255,0.6)',
+                                    margin: '0 0 16px 0',
+                                    lineHeight: '1.4',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                }}>
+                                    {category.description}
+                                </p>
+
+                                {/* Views */}
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    color: 'rgba(255,255,255,0.5)',
+                                    fontSize: '12px'
+                                }}>
+                                    <Icons.Eye />
+                                    <span>{category.views} views</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // ==================== MAIN APP COMPONENT ====================
+        const App = () => {
+            const [showAdmin, setShowAdmin] = useState(false);
+            const [showCategories, setShowCategories] = useState(false);
+            const [selectedCategory, setSelectedCategory] = useState(null);
+            const [videos, setVideos] = useState([]);
+            const [videosLoaded, setVideosLoaded] = useState(false);
+            const accessControl = useAccessControl();
+
+            // Handle category selection
+            const handleSelectCategory = (category) => {
+                setSelectedCategory(category);
+                setShowCategories(false);
+                // In a full implementation, this would filter videos by category
+            };
+
+            // Load videos and recreate blob URLs for local videos
+            useEffect(() => {
+                const loadVideos = async () => {
+                    // Check if we should show admin panel based on URL
+                    if (window.location.pathname === ADMIN_ROUTE ||
+                        window.location.hash === '#admin') {
+                        setShowAdmin(true);
+                    }
+
+                    // Load videos from storage or use samples
+                    let storedVideos = getStorageItem(STORAGE_KEYS.VIDEOS, null);
+                    if (!storedVideos || storedVideos.length === 0) {
+                        storedVideos = SAMPLE_VIDEOS;
+                        setStorageItem(STORAGE_KEYS.VIDEOS, SAMPLE_VIDEOS);
+                    }
+
+                    // Recreate blob URLs for local videos from IndexedDB
+                    const loadedVideos = await Promise.all(
+                        storedVideos.map(async (video) => {
+                            if (video.isLocal) {
+                                try {
+                                    const stored = await getVideoFromDB(video.id);
+                                    if (stored && stored.file) {
+                                        const blobUrl = URL.createObjectURL(stored.file);
+                                        return { ...video, url: blobUrl };
+                                    } else {
+                                        // Video file not found in IndexedDB, mark as broken
+                                        console.warn('Local video not found in IndexedDB:', video.id);
+                                        return { ...video, url: '', broken: true };
+                                    }
+                                } catch (e) {
+                                    console.error('Failed to load local video:', e);
+                                    return { ...video, url: '', broken: true };
+                                }
+                            }
+                            return video;
+                        })
+                    );
+
+                    // Filter out broken videos
+                    const validVideos = loadedVideos.filter(v => !v.broken);
+                    setVideos(validVideos);
+                    setVideosLoaded(true);
+                };
+
+                loadVideos();
+
+                // Cleanup blob URLs on unmount
+                return () => {
+                    videos.forEach(video => {
+                        if (video.isLocal && video.url && video.url.startsWith('blob:')) {
+                            URL.revokeObjectURL(video.url);
+                        }
+                    });
+                };
+            }, []);
+
+            // Handle URL changes for admin and categories access
+            useEffect(() => {
+                const handleHashChange = () => {
+                    if (window.location.hash === '#admin') {
+                        setShowAdmin(true);
+                        setShowCategories(false);
+                    } else if (window.location.hash === '#categories') {
+                        setShowCategories(true);
+                        setShowAdmin(false);
+                    }
+                };
+                // Check initial hash
+                if (window.location.hash === '#categories') {
+                    setShowCategories(true);
+                }
+                window.addEventListener('hashchange', handleHashChange);
+                return () => window.removeEventListener('hashchange', handleHashChange);
+            }, []);
+
+            if (showAdmin) {
+                return (
+                    <AdminPanel
+                        videos={videos}
+                        setVideos={setVideos}
+                        accessControl={accessControl}
+                        onClose={() => {
+                            setShowAdmin(false);
+                            window.location.hash = '';
+                        }}
+                    />
+                );
+            }
+
+            if (showCategories) {
+                return (
+                    <CategoriesView
+                        onBack={() => setShowCategories(false)}
+                        onSelectCategory={handleSelectCategory}
+                    />
+                );
+            }
+
+            // Show loading while videos are being loaded from IndexedDB
+            if (!videosLoaded) {
+                return (
+                    <div style={{
+                        height: '100%',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0a0a0f 100%)',
+                        flexDirection: 'column',
+                        gap: '16px'
+                    }}>
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            border: '3px solid rgba(139,92,246,0.3)',
+                            borderTopColor: '#8B5CF6',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite'
+                        }} />
+                        <span style={{ color: 'rgba(255,255,255,0.6)' }}>Loading videos...</span>
+                    </div>
+                );
+            }
+
+            return (
+                <div style={{ height: '100%', width: '100%' }}>
+                    <Header
+                        onAdminClick={() => setShowAdmin(true)}
+                        onCategoriesClick={() => setShowCategories(true)}
+                    />
+                    <VideoFeed videos={videos} accessControl={accessControl} />
+                </div>
+            );
+        };
+
+        // ==================== RENDER ====================
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
