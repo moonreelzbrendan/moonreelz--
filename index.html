@@ -521,11 +521,8 @@
                     setStorageItem(STORAGE_KEYS.LAST_VIEW_DATE, today);
                 }
 
-                // Calculate display value: show 6/6 on video 1, 0/6 after video 6
-                // Formula: if used all views, show 0; otherwise show (limit - views + 1) capped at limit
-                const viewsRemaining = dailyViews >= FREE_DAILY_LIMIT
-                    ? 0
-                    : Math.min(FREE_DAILY_LIMIT, FREE_DAILY_LIMIT - dailyViews + 1);
+                // Calculate display value: simply show how many views are left
+                const viewsRemaining = Math.max(0, FREE_DAILY_LIMIT - dailyViews);
                 setAccessState({
                     plan: PLANS.FREE,
                     viewsRemaining,
