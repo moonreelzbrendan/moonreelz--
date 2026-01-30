@@ -1197,7 +1197,7 @@
                     paddingBottom: '60px',
                     overflowY: 'auto',
                     WebkitOverflowScrolling: 'touch'
-                }} className="fade-in" onClick={onClose} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd} onWheel={handleModalWheel}>
+                }} className="fade-in">
                     <div
                         style={{
                             maxWidth: '1300px',
@@ -1207,31 +1207,7 @@
                         }}
                         className="slide-up"
                         onClick={(e) => e.stopPropagation()}
-                        onTouchStart={handleModalTouchStart}
-                        onTouchEnd={handleModalTouchEnd}
                     >
-                        {/* Back button - always works */}
-                        <button
-                            onClick={() => onSwipeBack && onSwipeBack()}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-                                border: 'none',
-                                borderRadius: '25px',
-                                padding: '12px 24px',
-                                color: '#fff',
-                                fontSize: '16px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                marginBottom: '20px'
-                            }}
-                        >
-                            ← Back to Videos
-                        </button>
-
                         {/* Header */}
                         <div style={{
                             display: 'flex',
@@ -1929,6 +1905,7 @@
                 if (e.key === 'r' || e.key === 'R') {
                     e.preventDefault();
                     accessControl.resetDailyViews();
+                    accessControl.closeUpgradeModal();
                     setCurrentIndex(0);
                     setMaxWatchedIndex(0);
                 }
