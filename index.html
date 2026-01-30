@@ -1079,18 +1079,23 @@
         };
 
         // ==================== UPGRADE MODAL COMPONENT ====================
-        const UpgradeModal = ({ isOpen, onClose, onSelectPlan, currentPlan }) => {
+        const UpgradeModal = ({ isOpen, onClose, onSelectPlan, currentPlan, onSwipeBack }) => {
             const [selectedPlan, setSelectedPlan] = useState(null);
             const [isYearly, setIsYearly] = useState(false);
             const [modalTouchStart, setModalTouchStart] = useState(null);
 
-            // Swipe down to close modal
+            // Swipe down to close modal AND navigate back
             const handleModalTouchStart = (e) => {
                 setModalTouchStart(e.touches[0].clientY);
             };
             const handleModalTouchEnd = (e) => {
                 if (modalTouchStart && e.changedTouches[0].clientY - modalTouchStart > 100) {
-                    onClose();
+                    // Close and navigate back
+                    if (onSwipeBack) {
+                        onSwipeBack();
+                    } else {
+                        onClose();
+                    }
                 }
                 setModalTouchStart(null);
             };
@@ -1183,7 +1188,28 @@
                         }}
                         className="slide-up"
                         onClick={(e) => e.stopPropagation()}
+                        onTouchStart={handleModalTouchStart}
+                        onTouchEnd={handleModalTouchEnd}
                     >
+                        {/* Swipe down indicator */}
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            marginBottom: '16px',
+                            color: 'rgba(255,255,255,0.5)',
+                            fontSize: '12px'
+                        }}>
+                            <div style={{
+                                width: '40px',
+                                height: '4px',
+                                background: 'rgba(255,255,255,0.3)',
+                                borderRadius: '2px',
+                                marginBottom: '8px'
+                            }} />
+                            <span>Swipe down to go back</span>
+                        </div>
+
                         {/* Header */}
                         <div style={{
                             display: 'flex',
@@ -2089,6 +2115,7 @@
                         onClose={accessControl.closeUpgradeModal}
                         onSelectPlan={accessControl.upgradeToPlan}
                         currentPlan={accessControl.plan}
+                        onSwipeBack={goToPrev}
                     />
                 </div>
             );
