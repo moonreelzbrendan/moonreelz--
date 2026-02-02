@@ -1855,23 +1855,19 @@
             };
 
             const onTouchEnd = () => {
-                // Don't navigate when modal is open
-                if (accessControl.showUpgradeModal) return;
-
                 if (!touchStart || !touchEnd) return;
                 const distance = touchStart - touchEnd;
                 const isUpSwipe = distance > minSwipeDistance;
                 const isDownSwipe = distance < -minSwipeDistance;
 
-                if (isUpSwipe) goToNext();
+                // Swipe up (go to next) - only if modal not open
+                if (isUpSwipe && !accessControl.showUpgradeModal) goToNext();
+                // Swipe down (go to prev) - always allow
                 if (isDownSwipe) goToPrev();
             };
 
             // Simple wheel handler with time-based cooldown to prevent skipping videos
             const handleWheel = useCallback((e) => {
-                // Don't navigate when modal is open
-                if (accessControl.showUpgradeModal) return;
-
                 e.preventDefault();
 
                 const now = Date.now();
@@ -1888,8 +1884,12 @@
                 lastScrollTime.current = now;
 
                 if (e.deltaY > 0) {
-                    goToNext();
+                    // Scroll down - only if modal not open
+                    if (!accessControl.showUpgradeModal) {
+                        goToNext();
+                    }
                 } else if (e.deltaY < 0) {
+                    // Scroll up - always allow (closes modal if open)
                     goToPrev();
                 }
             }, [goToNext, goToPrev, accessControl.showUpgradeModal]);
@@ -2100,33 +2100,6 @@
                                 }}
                             />
                         ))}
-                    </div>
-
-                    {/* Keyboard hint */}
-                    <div style={{
-                        position: 'absolute',
-                        bottom: '50px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        display: 'flex',
-                        gap: '8px',
-                        alignItems: 'center',
-                        color: 'rgba(255,255,255,0.4)',
-                        fontSize: '12px'
-                    }}>
-                        <span style={{
-                            padding: '4px 8px',
-                            background: 'rgba(255,255,255,0.1)',
-                            borderRadius: '4px',
-                            fontFamily: 'monospace'
-                        }}>↑</span>
-                        <span style={{
-                            padding: '4px 8px',
-                            background: 'rgba(255,255,255,0.1)',
-                            borderRadius: '4px',
-                            fontFamily: 'monospace'
-                        }}>↓</span>
-                        <span>or scroll to navigate</span>
                     </div>
 
                     <UpgradeModal
