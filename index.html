@@ -1638,17 +1638,21 @@
                         </div>
 
                         {/* Footer note */}
-                        <p style={{
-                            color: 'rgba(255,255,255,0.8)',
-                            fontSize: '15px',
-                            marginTop: '12px',
-                            marginBottom: '20px',
-                            fontWeight: '500'
-                        }}>
-                            {currentPlan === PLANS.FREE
-                                ? '6 FREE reels per day. Resets at midnight.'
-                                : 'Thank you for supporting MoonReelz!'}
-                        </p>
+                        {currentPlan === PLANS.FREE && (
+                            <p style={{
+                                color: '#fff',
+                                fontSize: '16px',
+                                marginTop: '16px',
+                                marginBottom: '40px',
+                                fontWeight: '600',
+                                background: 'rgba(139,92,246,0.2)',
+                                padding: '12px 20px',
+                                borderRadius: '10px',
+                                border: '1px solid rgba(139,92,246,0.3)'
+                            }}>
+                                🎬 6 FREE reels per day. Resets at midnight.
+                            </p>
+                        )}
                     </div>
                 </div>
             );
