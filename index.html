@@ -1635,24 +1635,17 @@
                             >
                                 {currentPlan === PLANS.FREE ? 'Maybe Later' : 'Close'}
                             </button>
+                            {currentPlan === PLANS.FREE && (
+                                <p style={{
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                    marginTop: '16px',
+                                    fontWeight: '500'
+                                }}>
+                                    6 FREE reels per day. Resets at midnight.
+                                </p>
+                            )}
                         </div>
-
-                        {/* Footer note */}
-                        {currentPlan === PLANS.FREE && (
-                            <p style={{
-                                color: '#fff',
-                                fontSize: '16px',
-                                marginTop: '16px',
-                                marginBottom: '40px',
-                                fontWeight: '600',
-                                background: 'rgba(139,92,246,0.2)',
-                                padding: '12px 20px',
-                                borderRadius: '10px',
-                                border: '1px solid rgba(139,92,246,0.3)'
-                            }}>
-                                🎬 6 FREE reels per day. Resets at midnight.
-                            </p>
-                        )}
                     </div>
                 </div>
             );
