@@ -1623,29 +1623,28 @@
                             <button
                                 onClick={onClose}
                                 style={{
-                                    padding: '12px 28px',
+                                    padding: '8px 16px',
                                     background: 'rgba(255,255,255,0.1)',
                                     border: '1px solid rgba(255,255,255,0.2)',
-                                    borderRadius: '12px',
+                                    borderRadius: '8px',
                                     color: '#fff',
-                                    fontSize: '15px',
-                                    fontWeight: '600',
+                                    fontSize: '13px',
+                                    fontWeight: '500',
                                     cursor: 'pointer'
                                 }}
                             >
                                 {currentPlan === PLANS.FREE ? 'Maybe Later' : 'Close'}
                             </button>
                         </div>
-                        <div style={{ width: '100%', textAlign: 'center', marginTop: '20px' }}>
-                            <p style={{
-                                color: '#fff',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                margin: 0
-                            }}>
-                                6 FREE reels per day. Resets at midnight.
-                            </p>
-                        </div>
+                        <p style={{
+                            color: 'rgba(255,255,255,0.7)',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            marginTop: '12px',
+                            marginBottom: '0'
+                        }}>
+                            6 FREE reels per day. Resets at midnight.
+                        </p>
                     </div>
                 </div>
             );
