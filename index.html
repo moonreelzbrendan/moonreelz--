@@ -1197,7 +1197,7 @@
                     paddingBottom: '60px',
                     overflowY: 'auto',
                     WebkitOverflowScrolling: 'touch'
-                }} className="fade-in">
+                }} className="fade-in" onWheel={(e) => e.stopPropagation()}>
                     <div
                         style={{
                             maxWidth: '1300px',
@@ -1207,6 +1207,7 @@
                         }}
                         className="slide-up"
                         onClick={(e) => e.stopPropagation()}
+                        onWheel={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
                         <div style={{
@@ -1795,6 +1796,12 @@
             }, [currentIndex]);
 
             const goToNext = useCallback(() => {
+                // If on last video, show plans screen
+                if (currentIndex === videos.length - 1) {
+                    accessControl.openUpgradeModal();
+                    return;
+                }
+
                 if (currentIndex < videos.length - 1) {
                     const nextIndex = currentIndex + 1;
 
@@ -1848,6 +1855,9 @@
             };
 
             const onTouchEnd = () => {
+                // Don't navigate when modal is open
+                if (accessControl.showUpgradeModal) return;
+
                 if (!touchStart || !touchEnd) return;
                 const distance = touchStart - touchEnd;
                 const isUpSwipe = distance > minSwipeDistance;
@@ -1859,6 +1869,9 @@
 
             // Simple wheel handler with time-based cooldown to prevent skipping videos
             const handleWheel = useCallback((e) => {
+                // Don't navigate when modal is open
+                if (accessControl.showUpgradeModal) return;
+
                 e.preventDefault();
 
                 const now = Date.now();
@@ -1879,7 +1892,7 @@
                 } else if (e.deltaY < 0) {
                     goToPrev();
                 }
-            }, [goToNext, goToPrev]);
+            }, [goToNext, goToPrev, accessControl.showUpgradeModal]);
 
             const handleKeyDown = useCallback((e) => {
                 if (e.key === 'ArrowDown' || e.key === ' ') {
