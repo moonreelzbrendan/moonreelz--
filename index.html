@@ -630,16 +630,35 @@
             useEffect(() => {
                 if (videoRef.current) {
                     if (isActive) {
-                        const playPromise = videoRef.current.play();
-                        if (playPromise !== undefined) {
-                            playPromise
-                                .then(() => {
-                                    setIsPlaying(true);
-                                })
-                                .catch((error) => {
-                                    console.error('Video play error:', error);
-                                    setIsPlaying(false);
-                                });
+                        // Force load the video first
+                        videoRef.current.load();
+
+                        const attemptPlay = () => {
+                            const playPromise = videoRef.current.play();
+                            if (playPromise !== undefined) {
+                                playPromise
+                                    .then(() => {
+                                        setIsPlaying(true);
+                                        setIsLoading(false);
+                                    })
+                                    .catch((error) => {
+                                        console.error('Video play error:', error);
+                                        setIsPlaying(false);
+                                        // Retry after a short delay
+                                        setTimeout(() => {
+                                            if (videoRef.current && isActive) {
+                                                videoRef.current.play().catch(() => {});
+                                            }
+                                        }, 500);
+                                    });
+                            }
+                        };
+
+                        // Try to play immediately, or wait for canplay
+                        if (videoRef.current.readyState >= 3) {
+                            attemptPlay();
+                        } else {
+                            videoRef.current.addEventListener('canplay', attemptPlay, { once: true });
                         }
                     } else {
                         videoRef.current.pause();
