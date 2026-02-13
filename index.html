@@ -953,7 +953,10 @@
                         bottom: '140px',
                         left: '16px',
                         right: '70px',
-                        zIndex: 10
+                        zIndex: 10,
+                        opacity: currentTime >= 5 ? 0 : 1,
+                        transition: 'opacity 0.8s ease-out',
+                        pointerEvents: currentTime >= 5 ? 'none' : 'auto'
                     }}>
                         <div style={{
                             display: 'flex',
